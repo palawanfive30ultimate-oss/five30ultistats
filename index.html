@@ -856,40 +856,65 @@
             });
         }
 
-        function renderEventAwards(container) {
-            let safeEvent = activeEventName.trim().toLowerCase();
-            let awards = globalAwards.filter(r => {
-                let evName = r['Event Name'] || r['Tournament Name'];
-                return evName && evName.trim().toLowerCase() === safeEvent && r['Division'] && r['Division'].trim() === eventDivision;
-            let defaultAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.Player)}&background=${avatarColor}&color=fff`;
-                let avatar = p.Picture || defaultAvatarUrl;
-            });
-            
-
-            if (awards.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center py-10 text-slate-500">No list of awards has been released for this division yet.</div>`;
-                return;
-            }
-
-            let html = `<div class="p-6"><h3 class="font-bold text-lg mb-4 text-slate-800">🏅 Event Awards</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">`;
-            
-            awards.forEach(award => {
-                let title = award['Award Title'] || 'Award';
-                let player = award['Player Name'] || 'TBA';
-                let team = award['Team Name'] || '-';
-                let defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.Player)}&background=${avatarColor}&color=fff`;
-                let pic = award['Picture'] || defaultAvatar;
+       function renderEventAwards(container) {
+            try {
+                let safeEvent = activeEventName.trim().toLowerCase();
                 
-                html += `
-                    <div class="border border-slate-200 bg-white rounded-xl p-4 text-center shadow-sm relative overflow-hidden">
-                        <img src="${pic}" onerror="this.onerror=null; this.src='${defaultAvatar}';" class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-slate-100 shadow-sm mb-3 mt-2">
-                        <p class="text-xs text-purple-600 font-bold uppercase tracking-wider">${title}</p>
-                        <a href="profile.html?player=${encodeURIComponent(player)}" class="font-black text-slate-800 text-lg leading-tight mt-1 hover:text-pink-600 block cursor-pointer">${player}</a>
-                        <p class="text-xs text-slate-500 mt-1">${team}</p>
-                    </div>`;
-            });
-            html += `</div></div>`;
-            container.innerHTML = html;
+                // Filter awards for this event and division
+                let awards = globalAwards.filter(r => {
+                    let evName = r['Event Name'] || r['Tournament Name'] || '';
+                    let divName = r['Division'] || '';
+                    return String(evName).trim().toLowerCase() === safeEvent && String(divName).trim() === eventDivision;
+                });
+
+                if (awards.length === 0) {
+                    container.innerHTML = `<div class="p-6 text-center py-10 text-slate-500">No list of awards has been released for this division yet.</div>`;
+                    return;
+                }
+
+                let html = `<div class="p-6"><h3 class="font-bold text-lg mb-4 text-slate-800">🏅 Event Awards</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">`;
+                
+                awards.forEach(award => {
+                    let title = award['Award Title'] || 'Award';
+                    let player = (award['Player'] || award['Player Name'] || 'TBA').trim();
+                    let team = award['Team Name'] || '-';
+                    
+                    // Hanapin ang picture nang mas safe
+                    let pic = award['Picture'] ? award['Picture'].trim() : '';
+                    
+                    // Siguruhin na nag-exist ang globalPlayers bago maghanap
+                    if ((!pic || pic === "") && typeof globalPlayers !== 'undefined' && Array.isArray(globalPlayers)) {
+                        
+                        // Pinalitan natin ang "p" ng "playerData" para iwas error na "p is not defined"
+                        let playerInfo = globalPlayers.find(playerData => {
+                            let rowPlayerName = playerData['Player'] || '';
+                            return rowPlayerName.trim().toLowerCase() === player.toLowerCase();
+                        });
+                        
+                        if (playerInfo && playerInfo['Picture']) {
+                            pic = playerInfo['Picture'];
+                        }
+                    }
+
+                    let defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(player)}&background=8b5cf6&color=fff`;
+                    let finalPic = pic ? pic.trim() : defaultAvatar;
+
+                    html += `
+                        <div class="border border-slate-200 bg-white rounded-xl p-4 text-center shadow-sm relative overflow-hidden group hover:border-purple-300 transition-all">
+                            <img src="${finalPic}" onerror="this.onerror=null; this.src='${defaultAvatar}';" class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-slate-100 shadow-sm mb-3 mt-2 group-hover:scale-105 transition-transform">
+                            <p class="text-xs text-purple-600 font-bold uppercase tracking-wider">${title}</p>
+                            <a href="profile.html?player=${encodeURIComponent(player)}" class="font-black text-slate-800 text-lg leading-tight mt-1 hover:text-pink-600 block cursor-pointer">${player}</a>
+                            <p class="text-xs text-slate-500 mt-1">${team}</p>
+                        </div>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error("May error sa pag-render ng awards:", error);
+                // Dito mo makikita mismo sa screen kung may mali imbes na mag-loading lang
+                container.innerHTML = `<div class="p-6 text-center py-10 text-red-500 font-bold">Error loading awards: ${error.message}</div>`;
+            }
         }
 
         function renderOverallLeaderboard() {
