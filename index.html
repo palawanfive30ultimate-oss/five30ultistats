@@ -861,7 +861,10 @@
             let awards = globalAwards.filter(r => {
                 let evName = r['Event Name'] || r['Tournament Name'];
                 return evName && evName.trim().toLowerCase() === safeEvent && r['Division'] && r['Division'].trim() === eventDivision;
+            let defaultAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.Player)}&background=${avatarColor}&color=fff`;
+                let avatar = p.Picture || defaultAvatarUrl;
             });
+            
 
             if (awards.length === 0) {
                 container.innerHTML = `<div class="p-6 text-center py-10 text-slate-500">No list of awards has been released for this division yet.</div>`;
@@ -874,9 +877,9 @@
                 let title = award['Award Title'] || 'Award';
                 let player = award['Player Name'] || 'TBA';
                 let team = award['Team Name'] || '-';
-                let defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(player)}&background=8b5cf6&color=fff`;
+                let defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.Player)}&background=${avatarColor}&color=fff`;
                 let pic = award['Picture'] || defaultAvatar;
-
+                
                 html += `
                     <div class="border border-slate-200 bg-white rounded-xl p-4 text-center shadow-sm relative overflow-hidden">
                         <img src="${pic}" onerror="this.onerror=null; this.src='${defaultAvatar}';" class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-slate-100 shadow-sm mb-3 mt-2">
