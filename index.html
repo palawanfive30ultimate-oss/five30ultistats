@@ -145,12 +145,15 @@
             </div>
         </div>
         
-        <nav class="mt-8 flex justify-center gap-4 md:gap-8 text-xs md:text-sm font-medium overflow-x-auto hide-scrollbar px-2">
-            <a href="#" id="navPast" onclick="switchMainTab('past')" class="border-b-2 border-white pb-2 hover:text-pink-200 transition-colors whitespace-nowrap">Past Events</a>
-            <a href="#" id="navUpcoming" onclick="switchMainTab('upcoming')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Upcoming Events</a>
-            <a href="#" id="navLeaderboard" onclick="switchMainTab('leaderboard')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Leaderboard</a>
-            <a href="#" id="navTeams" onclick="switchMainTab('teams')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Teams</a>
-        </nav>
+       <nav class="mt-8 flex justify-center gap-4 md:gap-8 text-xs md:text-sm font-medium overflow-x-auto hide-scrollbar px-2">
+    <a href="javascript:void(0);" id="navPast" onclick="switchMainTab('past')" class="border-b-2 border-white pb-2 hover:text-pink-200 transition-colors whitespace-nowrap">Past Events</a>
+    
+    <a href="javascript:void(0);" id="navUpcoming" onclick="switchMainTab('upcoming')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Upcoming Events</a>
+    
+    <a href="javascript:void(0);" id="navLeaderboard" onclick="switchMainTab('leaderboard')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Leaderboard</a>
+    
+    <a href="javascript:void(0);" id="navTeams" onclick="switchMainTab('teams')" class="border-b-2 border-transparent pb-2 hover:text-pink-200 transition-colors opacity-80 hover:opacity-100 whitespace-nowrap">Teams</a>
+</nav>
     </header>
 
     <main class="max-w-5xl mx-auto p-4 mt-6 relative">
@@ -265,6 +268,41 @@
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"></path></svg>
     </button>
 
+    <div id="match-breakdown-modal" class="hidden fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4 relative">
+                <button onclick="closeMatchModal()" class="absolute top-4 right-4 text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-1 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div class="text-center">
+                    <h2 id="modal-match-title" class="text-xl font-black uppercase tracking-tight text-pink-200">Team A vs Team B</h2>
+                    <p id="modal-match-division" class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-widest">Open Division - Finals</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center bg-slate-100 p-2 border-b border-slate-200 shadow-inner">
+                <div class="w-1/2 text-center border-r border-slate-300">
+                    <span id="modal-team1-name" class="font-bold text-slate-700 text-sm">Team A</span>
+                </div>
+                <div class="w-1/2 text-center">
+                    <span id="modal-team2-name" class="font-bold text-slate-700 text-sm">Team B</span>
+                </div>
+            </div>
+
+            <div id="modal-breakdown-content" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 hide-scrollbar">
+                </div>
+            
+            <div class="bg-slate-100 p-3 text-center border-t border-slate-200">
+                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider flex items-center justify-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Auto-updating live from server
+                </p>
+            </div>
+        </div>
+    </div>
+    ```
+
+
     <script>
         // --- CSV LINKS ---
         const homeCSVLink = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSIAvXx5NvhKIc-u65685vUfgaFyqi7b2-BqJcbmBCotq3oZ8rQgl3YqvYgi6cwsyfHTbWS5HNIjycW/pub?gid=2003399018&single=true&output=csv'; 
@@ -290,13 +328,38 @@
         let overallDivision = "Overall"; 
 
         // --- INIT DATA FETCHING ---
-        function checkLoadComplete() {
-            loadedSources++;
-            if (loadedSources === 5) { 
-                document.getElementById('globalLoader').classList.add('hidden');
-                switchMainTab('past'); 
+     function checkLoadComplete() {
+        loadedSources++;
+        if (loadedSources === 5) { 
+            document.getElementById('globalLoader').classList.add('hidden');
+            
+            let hash = window.location.hash.replace('#', '');
+            let savedSession = sessionStorage.getItem('five30_active_view');
+            
+            if (hash) {
+                if (['past', 'upcoming', 'leaderboard', 'teams'].includes(hash)) {
+                    switchMainTab(hash, false);
+                } else if (hash.startsWith('event-')) {
+                    let eventName = decodeURIComponent(hash.replace('event-', ''));
+                    openEventDetail(eventName, false);
+                } else {
+                    switchMainTab('past', false); 
+                }
+            } else if (savedSession) {
+                // Fallback kapag nawala yung hash pag-back
+                try {
+                    let parsed = JSON.parse(savedSession);
+                    if (parsed.type === 'main') switchMainTab(parsed.id, false);
+                    else if (parsed.type === 'event') openEventDetail(parsed.id, false);
+                    else switchMainTab('past', false);
+                } catch(e) {
+                    switchMainTab('past', false);
+                }
+            } else {
+                switchMainTab('past', false); 
             }
         }
+    }
 
         Papa.parse(homeCSVLink + noCache, { download: true, header: true, skipEmptyLines: true, complete: function(res) { globalHomeData = res.data; checkLoadComplete(); }});
         Papa.parse(playersCSVLink + noCache, { download: true, header: true, skipEmptyLines: true, complete: function(res) { globalPlayers = res.data; checkLoadComplete(); }});
@@ -305,33 +368,65 @@
         Papa.parse(teamsCSVLink + noCache, { download: true, header: true, skipEmptyLines: true, complete: function(res) { globalTeams = res.data; checkLoadComplete(); }});
 
         // --- MAIN NAVIGATION LOGIC ---
-        function switchMainTab(tabId) {
-            ['pastView', 'upcomingView', 'leaderboardView', 'teamsView', 'eventDetailView'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-
-            ['navPast', 'navUpcoming', 'navLeaderboard', 'navTeams'].forEach(id => {
-                let el = document.getElementById(id);
-                el.classList.remove('border-white');
-                el.classList.add('border-transparent', 'opacity-80');
-            });
-
-            const activeNav = document.getElementById('nav' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
-            if(activeNav) {
-                activeNav.classList.remove('border-transparent', 'opacity-80');
-                activeNav.classList.add('border-white');
-            }
-
-            document.getElementById(tabId + 'View').classList.remove('hidden');
-
-            if (tabId === 'past') renderEventsList('Past', 'pastCardsContainer');
-            if (tabId === 'upcoming') renderEventsList('Upcoming', 'upcomingCardsContainer');
-            if (tabId === 'leaderboard') renderOverallLeaderboard();
-            if (tabId === 'teams') renderTeamsList(); 
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function switchMainTab(tabId, addToHistory = true) {
+    // 1. Itago ang lahat ng views (MAY SAFETY CHECK NA)
+    ['pastView', 'upcomingView', 'leaderboardView', 'teamsView', 'eventDetailView'].forEach(id => {
+        let viewEl = document.getElementById(id);
+        if (viewEl) { // Kung nag-e-exist yung ID, itago niya
+            viewEl.classList.add('hidden');
         }
 
+        // (Pang-hanap: Huling part ito ng switchMainTab)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // I-save ang current tab sa Session Storage
+    sessionStorage.setItem('five30_active_view', JSON.stringify({ type: 'main', id: tabId }));
+
+    // 6. I-save sa URL at Browser History (May safety catch na para sa local testing)
+    if (addToHistory) {
+        try {
+            history.pushState({ type: 'mainTab', tabId: tabId }, '', `#${tabId}`);
+        } catch(e) {
+            window.location.hash = tabId;
+        }
+    }
+    });
+
+    // 2. I-reset ang kulay ng Navigation Buttons
+    ['navPast', 'navUpcoming', 'navLeaderboard', 'navTeams'].forEach(id => {
+        let navEl = document.getElementById(id);
+        if(navEl) {
+            navEl.classList.remove('border-white');
+            navEl.classList.add('border-transparent', 'opacity-80');
+        }
+    });
+
+    // 3. I-highlight ang pinindot na Navigation Button
+    const activeNav = document.getElementById('nav' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+    if(activeNav) {
+        activeNav.classList.remove('border-transparent', 'opacity-80');
+        activeNav.classList.add('border-white');
+    }
+
+    // 4. I-show yung mismong Tab View na pinindot
+    let targetView = document.getElementById(tabId + 'View');
+    if(targetView) {
+        targetView.classList.remove('hidden');
+    }
+
+    // 5. I-render ang data depende sa tab (MAY SAFETY CHECK DIN)
+    if (tabId === 'past' && typeof renderEventsList === 'function') renderEventsList('Past', 'pastCardsContainer');
+    if (tabId === 'upcoming' && typeof renderEventsList === 'function') renderEventsList('Upcoming', 'upcomingCardsContainer');
+    if (tabId === 'leaderboard' && typeof renderOverallLeaderboard === 'function') renderOverallLeaderboard();
+    if (tabId === 'teams' && typeof renderTeamsList === 'function') renderTeamsList(); 
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 6. I-save sa URL at Browser History
+    if (addToHistory) {
+        history.pushState({ type: 'mainTab', tabId: tabId }, '', `#${tabId}`);
+    }
+}
         function renderEventsList(statusFilter, containerId) {
             const container = document.getElementById(containerId);
             let html = '';
@@ -579,51 +674,81 @@
             }
         }
 
-        function openEventDetail(eventName) {
-            activeEventName = eventName;
-            activeEventTab = 'matches'; 
-            
-            document.getElementById('detailEventName').innerText = eventName;
-            
-            ['pastView', 'upcomingView', 'leaderboardView', 'teamsView'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById('eventDetailView').classList.remove('hidden');
-            
-            ['navPast', 'navUpcoming', 'navLeaderboard', 'navTeams'].forEach(id => {
-                let el = document.getElementById(id);
-                el.classList.remove('border-white');
-                el.classList.add('border-transparent', 'opacity-80');
-            });
-
-            function refreshEventDivisions() {
-                let availableDivisions = new Set();
-                let safeEvent = activeEventName.trim().toLowerCase();
-
-                [globalMatches, globalPlayers, globalAwards].forEach(dataset => {
-                    dataset.forEach(r => {
-                        let evName = r['Event Name'] || r['Tournament Name'];
-                        if (evName && evName.trim().toLowerCase() === safeEvent && r['Division']) {
-                            availableDivisions.add(r['Division'].trim());
-                        }
-                    });
-                });
-                
-                let divArray = Array.from(availableDivisions).sort();
-                if(divArray.length === 0) divArray = ['Mixed']; 
-                if(!divArray.includes(eventDivision)) eventDivision = divArray[0];
-
-                renderDivisions('eventDivisionsContainer', divArray, eventDivision, (selectedDiv) => {
-                    eventDivision = selectedDiv;
-                    refreshEventDivisions(); 
-                    switchEventTab(activeEventTab); 
-                });
-            }
-
-            refreshEventDivisions(); 
-            switchEventTab('matches');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+       function openEventDetail(eventName, addToHistory = true) {
+    activeEventName = eventName;
+    activeEventTab = 'matches'; 
+    
+    document.getElementById('detailEventName').innerText = eventName;
+    
+    ['pastView', 'upcomingView', 'leaderboardView', 'teamsView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById('eventDetailView').classList.remove('hidden');
+    
+    ['navPast', 'navUpcoming', 'navLeaderboard', 'navTeams'].forEach(id => {
+        let el = document.getElementById(id);
+        if(el) {
+            el.classList.remove('border-white');
+            el.classList.add('border-transparent', 'opacity-80');
         }
+        
+        // (Pang-hanap: Huling part ito ng openEventDetail bago mag-close)
+    refreshEventDivisions(); 
+    
+    // I-restore ang active event tab kung meron, default is 'matches'
+    let savedEventTab = sessionStorage.getItem('five30_event_subtab') || 'matches';
+    switchEventTab(savedEventTab);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // I-save ang current event sa Session Storage
+    sessionStorage.setItem('five30_active_view', JSON.stringify({ type: 'event', id: eventName }));
+
+    // ETO ANG PUSH STATE PARA SA EVENT
+    if (addToHistory) {
+        try {
+            history.pushState({ type: 'eventDetail', eventName: eventName }, '', `#event-${encodeURIComponent(eventName)}`);
+        } catch(e) {
+            window.location.hash = `event-${encodeURIComponent(eventName)}`;
+        }
+    }
+    });
+
+    function refreshEventDivisions() {
+        let availableDivisions = new Set();
+        let safeEvent = activeEventName.trim().toLowerCase();
+
+        [globalMatches, globalPlayers, globalAwards].forEach(dataset => {
+            dataset.forEach(r => {
+                let evName = r['Event Name'] || r['Tournament Name'];
+                if (evName && evName.trim().toLowerCase() === safeEvent && r['Division']) {
+                    availableDivisions.add(r['Division'].trim());
+                }
+            });
+        });
+        
+        let divArray = Array.from(availableDivisions).sort();
+        if(divArray.length === 0) divArray = ['Mixed']; 
+        if(!divArray.includes(eventDivision)) eventDivision = divArray[0];
+
+        renderDivisions('eventDivisionsContainer', divArray, eventDivision, (selectedDiv) => {
+            eventDivision = selectedDiv;
+            refreshEventDivisions(); 
+            switchEventTab(activeEventTab); 
+        });
+    }
+
+    refreshEventDivisions(); 
+    switchEventTab('matches');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // ETO ANG PUSH STATE PARA SA EVENT
+    if (addToHistory) {
+        history.pushState({ type: 'eventDetail', eventName: eventName }, '', `#event-${encodeURIComponent(eventName)}`);
+    }
+}
+
+        
 
         function goBackToEvents() {
             let safeEvent = activeEventName.trim().toLowerCase();
@@ -648,6 +773,7 @@
             if(tabId === 'matches') renderEventMatches(contentArea);
             if(tabId === 'rankings') renderEventRankings(contentArea);
             if(tabId === 'awards') renderEventAwards(contentArea);
+            
         }
 
         function renderEventMatches(container) {
@@ -711,9 +837,22 @@
                     `;
                 }
 
+               // Kunin ang Match ID mula sa Google Sheet mo (Palitan ng tama kung iba ang column name)
+                let matchId = match['Match ID'] || match['ID'] || 'M-000'; 
+                let stageStr = match['Stage'] || 'Match';
+
                 html += `
-                    <div class="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50 hover:bg-white transition-colors">
-                        <div class="text-center mb-3"><span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">${match['Stage'] || 'Match'}</span></div>
+                    <div onclick="openMatchModal('${matchId}', '${teamA}', '${teamB}', '${eventDivision} - ${stageStr}')" 
+                         class="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50 hover:bg-white transition-colors cursor-pointer hover:border-purple-400 hover:shadow-md relative">
+                        
+                        <div class="absolute top-2 right-2 flex space-x-1">
+                             <span class="relative flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                             </span>
+                        </div>
+
+                        <div class="text-center mb-3"><span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">${stageStr}</span></div>    
                         
                         <div class="flex justify-between items-center w-full">
                             <div class="w-2/5 flex flex-col justify-center items-center gap-2">
@@ -1069,6 +1208,155 @@
                 behavior: 'smooth'
             });
         }
+
+        // --- BROWSER BACK BUTTON LOGIC ---
+window.addEventListener('popstate', function(event) {
+    const state = event.state;
+    
+    if (state) {
+        // 'false' ang pinapasa natin para hindi na sya gumawa ng panibagong history record
+        if (state.type === 'mainTab') {
+            switchMainTab(state.tabId, false); 
+        } else if (state.type === 'eventDetail') {
+            openEventDetail(state.eventName, false);
+        }
+    } else {
+        // Kung walang naka-save (halimbawa, in-open direct from link), basahin ang URL
+        let hash = window.location.hash.replace('#', '');
+        if (['past', 'upcoming', 'leaderboard', 'teams'].includes(hash)) {
+            switchMainTab(hash, false);
+        } else if (hash.startsWith('event-')) {
+            let eName = decodeURIComponent(hash.replace('event-', ''));
+            openEventDetail(eName, false);
+        } else {
+            switchMainTab('past', false);
+        }
+    }
+});
+
+    // Variable para sa Live Timer
+let liveUpdateTimer = null;
+// ILAGAY DITO ANG CSV LINK NG SCORE BREAKDOWN TAB MO
+const BREAKDOWN_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSIAvXx5NvhKIc-u65685vUfgaFyqi7b2-BqJcbmBCotq3oZ8rQgl3YqvYgi6cwsyfHTbWS5HNIjycW/pub?gid=1348526669&single=true&output=csv';
+
+// Function para buksan ang modal at simulan ang Live Update
+function openMatchModal(matchId, teamA, teamB, divisionStage) {
+    // Ipakita ang modal
+    document.getElementById('match-breakdown-modal').classList.remove('hidden');
+    
+    // I-set ang Header Texts
+    document.getElementById('modal-match-title').innerText = `${teamA} vs ${teamB}`;
+    document.getElementById('modal-match-division').innerText = divisionStage;
+    document.getElementById('modal-team1-name').innerText = teamA;
+    document.getElementById('modal-team2-name').innerText = teamB;
+
+    // Linisin muna ang lumang laman
+    document.getElementById('modal-breakdown-content').innerHTML = '<div class="text-center p-4 text-slate-500">Loading live data...</div>';
+
+    // 1. I-fetch agad ang data pagkabukas
+    fetchBreakdownData(matchId, teamA, teamB);
+
+    // 2. Simulan ang Live Polling (mag-re-refresh every 10 seconds)
+    // 10000 milliseconds = 10 seconds. Pwede mong baguhin kung gusto mo.
+    liveUpdateTimer = setInterval(() => {
+        console.log("Checking for live updates...");
+        fetchBreakdownData(matchId, teamA, teamB);
+    }, 10000); 
+}
+
+// Function para isara ang modal at patayin ang timer
+function closeMatchModal() {
+    document.getElementById('match-breakdown-modal').classList.add('hidden');
+    
+    // IMPORTANT: Patayin ang timer para hindi bumagal ang website mo
+    if (liveUpdateTimer) {
+        clearInterval(liveUpdateTimer);
+        liveUpdateTimer = null;
+    }
+}
+
+// Function para kunin at i-drawing ang data galing Google Sheets
+async function fetchBreakdownData(matchId, teamA, teamB) {
+    try {
+        // Naglagay tayo ng random number sa dulo ng URL para hindi i-cache (i-save) ng browser yung lumang data
+        const response = await fetch(BREAKDOWN_CSV_URL + '&t=' + new Date().getTime());
+        const data = await response.text();
+        
+        // Simpleng CSV parser (hinihiwalay by rows)
+        const rows = data.split('\n').map(row => row.split(','));
+        const headers = rows[0]; // Row 1 ng GSheets
+        const breakdownRows = rows.slice(1); // Ang mga laman
+
+        let htmlContent = '';
+
+        // I-filter ang mga rows para sa specific Match ID na ito
+        const matchEvents = breakdownRows.filter(row => row[0] && row[0].trim() === matchId);
+
+        if (matchEvents.length === 0) {
+            document.getElementById('modal-breakdown-content').innerHTML = '<div class="text-center p-4 text-slate-500">Wala pang score breakdown na nailalagay.</div>';
+            return;
+        }
+
+        // I-sort by Order (Column B) para siguradong sunod-sunod
+        matchEvents.sort((a, b) => parseInt(a[1]) - parseInt(b[1]));
+
+        // Gawan ng HTML bawat point
+        matchEvents.forEach(row => {
+            const time = row[2];
+            const actionTeam = row[3] ? row[3].trim() : '';
+            const action = row[4];
+            const player1 = row[5];
+            const player2 = row[6] ? row[6] : ''; // Assister (baka blank)
+            const scoreT1 = row[7];
+            const scoreT2 = row[8];
+
+            const scoreDisplay = `${scoreT1} - ${scoreT2}`;
+            const isTeamA = actionTeam.toLowerCase() === teamA.toLowerCase();
+
+            if (isTeamA) {
+                // KALIWA (Team A)
+                htmlContent += `
+                <div class="flex items-center justify-between">
+                    <div class="w-2/5 text-right pr-4 flex flex-col justify-center">
+                        <span class="font-bold text-slate-800 text-sm">${player1}</span>
+                        ${player2 ? `<span class="text-xs text-slate-500">${player2}</span>` : ''}
+                        <div class="flex justify-end items-center mt-1 gap-2">
+                            <span class="text-xs text-slate-400">${time}</span>
+                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded border border-green-300">${action}</span>
+                        </div>
+                    </div>
+                    <div class="w-1/5 flex justify-center">
+                        <span class="font-black text-lg text-indigo-900 bg-white px-3 py-1 rounded shadow-sm border border-slate-200">${scoreDisplay}</span>
+                    </div>
+                    <div class="w-2/5 pl-4"></div>
+                </div>`;
+            } else {
+                // KANAN (Team B)
+                htmlContent += `
+                <div class="flex items-center justify-between">
+                    <div class="w-2/5 pr-4"></div>
+                    <div class="w-1/5 flex justify-center">
+                        <span class="font-black text-lg text-indigo-900 bg-white px-3 py-1 rounded shadow-sm border border-slate-200">${scoreDisplay}</span>
+                    </div>
+                    <div class="w-2/5 text-left pl-4 flex flex-col justify-center">
+                        <span class="font-bold text-slate-800 text-sm">${player1}</span>
+                        ${player2 ? `<span class="text-xs text-slate-500">${player2}</span>` : ''}
+                        <div class="flex justify-start items-center mt-1 gap-2">
+                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded border border-green-300">${action}</span>
+                            <span class="text-xs text-slate-400">${time}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        });
+
+        // I-update ang loob ng modal
+        document.getElementById('modal-breakdown-content').innerHTML = htmlContent;
+
+    } catch (error) {
+        console.error("Error fetching breakdown:", error);
+    }
+}
 
     </script>
 </body>
