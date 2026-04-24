@@ -1329,7 +1329,7 @@ async function fetchBreakdownData(matchId, teamA, teamB) {
         const matchEvents = breakdownRows.filter(row => row[0] && row[0].trim() === matchId);
 
         if (matchEvents.length === 0) {
-            document.getElementById('modal-breakdown-content').innerHTML = '<div class="text-center p-4 text-slate-500">Wala pang score breakdown na nailalagay.</div>';
+            document.getElementById('modal-breakdown-content').innerHTML = '<div class="text-center p-4 text-slate-500">No score breakdown has been posted yet..</div>';
             return;
         }
 
@@ -1440,7 +1440,7 @@ async function fetchBreakdownData(matchId, teamA, teamB) {
             // I-render sa table
             const tbody = document.getElementById('tpRosterList');
             if (processedRoster.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">Wala pang players na naka-lista para sa team na ito.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">There are no players listed for this team yet..</td></tr>`;
                 return;
             }
 
