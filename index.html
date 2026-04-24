@@ -120,7 +120,7 @@
     <header class="bg-gradient-to-r from-pink-600 to-purple-600 text-white py-6 px-4 shadow-md relative z-10">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between w-full">
             <div class="mb-4 md:mb-0 w-full md:w-1/3 flex justify-center md:justify-start">
-                <img src="https://scontent.fmnl3-4.fna.fbcdn.net/v/t39.30808-6/419401924_336674062653458_8323897016650203580_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeH9J78GfEjLO_auuXYgSRREW6boCkd9R59bpugKR31Hn7eUS9goJDs2UHPPBD7mvRgUXFySNWWJK1ln_8z8zgzv&_nc_ohc=A7NQV0b3CEwQ7kNvwF0_HYN&_nc_oc=AdowGzhIQAe-CAFvGoaP_EzzsetR90dfvarXQfaupOaZ373UKtmBnF_aBvZZuqUyof8&_nc_zt=23&_nc_ht=scontent.fmnl3-4.fna&_nc_gid=n-vLoEVtRywCJitPHxilUw&_nc_ss=7a3a8&oh=00_Af1pGl76ZF3rPJDX5-SDQG-BjZjBv0GG0jRD4RnjxnSkCA&oe=69DB01F4" 
+                <img src="https://i.postimg.cc/gc6KcSJ3/419401924-336674062653458-8323897016650203580-n.jpg" 
                      alt="5:30 Org Logo" id="mainLogo" class="h-20 w-20 md:h-24 md:w-24 object-cover rounded-full border-2 border-white shadow-sm hover:scale-105 transition-transform cursor-pointer">
             </div>
 
@@ -258,6 +258,42 @@
 
         </div>
 
+        <div id="teamProfileView" class="hidden animate-fade-in">
+            <button onclick="switchMainTab('teams')" class="mb-4 flex items-center gap-2 text-slate-600 hover:text-pink-600 font-semibold transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Teams List
+            </button>
+
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border-t-4 border-purple-500 flex items-center gap-4">
+                <img id="tpLogo" src="" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-slate-200 shadow-sm" alt="Team Logo">
+                <div>
+                    <h2 id="tpTeamName" class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight">TEAM NAME</h2>
+                    <p id="tpTournamentName" class="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Tournament Name</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+                <div class="bg-slate-800 text-white p-4">
+                    <h3 class="font-bold text-lg uppercase tracking-wide">🏆 Ranked Team Roster</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-slate-500 text-xs md:text-sm uppercase tracking-wider">
+                                <th class="p-3 md:p-4 font-bold text-center w-12">#</th>
+                                <th class="p-3 md:p-4 font-bold">Player</th>
+                                <th class="p-3 md:p-4 font-bold text-center">G</th>
+                                <th class="p-3 md:p-4 font-bold text-center">A</th>
+                                <th class="p-3 md:p-4 font-bold text-center">B</th>
+                                <th class="p-3 md:p-4 font-black text-center text-slate-800">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tpRosterList" class="text-sm md:text-base"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <div id="logoModal" class="modal">
@@ -370,7 +406,7 @@
         // --- MAIN NAVIGATION LOGIC ---
         function switchMainTab(tabId, addToHistory = true) {
     // 1. Itago ang lahat ng views (MAY SAFETY CHECK NA)
-    ['pastView', 'upcomingView', 'leaderboardView', 'teamsView', 'eventDetailView'].forEach(id => {
+    ['pastView', 'upcomingView', 'leaderboardView', 'teamsView', 'eventDetailView', 'teamProfileView'].forEach(id => {
         let viewEl = document.getElementById(id);
         if (viewEl) { // Kung nag-e-exist yung ID, itago niya
             viewEl.classList.add('hidden');
@@ -621,7 +657,7 @@
                             : `<img src="${fallbackAvatar}" class="team-logo" alt="logo">`;
                             
                         tablesHtml += `
-                            <tr class="hover:bg-slate-50 transition-colors">
+                           <tr onclick="openTeamProfile('${tourney.replace(/'/g, "\\'")}', '${t.tName.replace(/'/g, "\\'")}', '${t.logoUrl || fallbackAvatar}')" class="hover:bg-purple-50 transition-colors cursor-pointer">
                                 <td style="text-align: left; display: flex; align-items: center; gap: 12px; font-weight: bold; color: #1e293b;">
                                     ${logoHtml} <span>${t.tName}</span>
                                 </td>
@@ -1357,6 +1393,89 @@ async function fetchBreakdownData(matchId, teamA, teamB) {
         console.error("Error fetching breakdown:", error);
     }
 }
+
+    function openTeamProfile(tournamentName, teamName, logoUrl) {
+            // Itago lahat ng main views at ipakita ang team profile
+            ['pastView', 'upcomingView', 'leaderboardView', 'teamsView', 'eventDetailView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('teamProfileView').classList.remove('hidden');
+
+            // I-set ang Header details
+            document.getElementById('tpTeamName').innerText = teamName;
+            document.getElementById('tpTournamentName').innerText = tournamentName;
+            document.getElementById('tpLogo').src = logoUrl;
+
+            // Kunin at i-filter ang mga players mula sa globalPlayers
+            let roster = globalPlayers.filter(row => {
+                let evName = row['Tournament Name'] || row['Tournament'] || row['Event Name'];
+                let tName = row['Team Name'] || row['Team'];
+                
+                return evName && tName && 
+                       evName.trim().toLowerCase() === tournamentName.trim().toLowerCase() && 
+                       tName.trim().toLowerCase() === teamName.trim().toLowerCase();
+            });
+
+            // I-compute ang stats at i-sort
+            let processedRoster = roster.map(p => {
+                let goals = parseInt(p['Goals'] || p['Goal']) || 0;
+                let assists = parseInt(p['Assists'] || p['Assist']) || 0;
+                let blocks = parseInt(p['Blocks'] || p['Block']) || 0;
+                let total = goals + assists + blocks; // Pwedeng ito o kunin directly ang p['Total']
+                
+                return {
+                    Player: p['Player'] || p['Player Name'],
+                    Picture: p['Picture'],
+                    Goals: goals,
+                    Assists: assists,
+                    Blocks: blocks,
+                    Total: total,
+                    Gender: p['Gender'] || ''
+                };
+            });
+
+            // Sort by Total Contribution (Descending)
+            processedRoster.sort((a, b) => b.Total !== a.Total ? b.Total - a.Total : b.Goals - a.Goals);
+
+            // I-render sa table
+            const tbody = document.getElementById('tpRosterList');
+            if (processedRoster.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">Wala pang players na naka-lista para sa team na ito.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            processedRoster.forEach((p, idx) => {
+                let rankNumber = idx + 1;
+                let topRankBg = rankNumber === 1 ? "bg-yellow-100" : (rankNumber === 2 ? "bg-slate-100" : (rankNumber === 3 ? "bg-orange-50" : ""));
+                let rankTextClass = rankNumber === 1 ? "font-black text-xl text-yellow-600" : (rankNumber === 2 ? "font-bold text-lg text-slate-500" : (rankNumber === 3 ? "font-bold text-base text-orange-500" : "font-semibold text-slate-400"));
+                
+                // Gender specific colors (Tulad ng sa leaderboard mo)
+                let isFemale = ['f', 'female', 'women', 'girl'].includes(p.Gender.trim().toLowerCase());
+                let borderLeftClass = isFemale ? "border-l-4 border-pink-500" : "border-l-4 border-blue-500";
+                let textColorClass = isFemale ? "text-pink-900" : "text-blue-900";
+                let avatarColor = isFemale ? "DB2777" : "2563EB";
+
+                let defaultAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.Player)}&background=${avatarColor}&color=fff`;
+                let avatar = p.Picture ? p.Picture.trim() : defaultAvatarUrl;
+
+                html += `
+                    <tr class="${topRankBg} hover:bg-slate-50 border-b border-slate-200 transition-colors cursor-pointer">
+                        <td class="p-3 md:p-4 text-center ${rankTextClass} ${borderLeftClass}">${rankNumber}</td>
+                        <td class="p-3 md:p-4 flex items-center gap-3">
+                            <img src="${avatar}" onerror="this.onerror=null; this.src='${defaultAvatarUrl}';" class="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-sm">
+                            <span class="font-bold ${textColorClass} text-sm md:text-base leading-tight">${p.Player}</span>
+                        </td>
+                        <td class="p-3 md:p-4 text-center font-bold text-blue-600">${p.Goals}</td>
+                        <td class="p-3 md:p-4 text-center font-bold text-green-600">${p.Assists}</td>
+                        <td class="p-3 md:p-4 text-center font-bold text-red-500">${p.Blocks}</td>
+                        <td class="p-3 md:p-4 text-center font-black text-purple-700 text-lg">${p.Total}</td>
+                    </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
     </script>
 </body>
