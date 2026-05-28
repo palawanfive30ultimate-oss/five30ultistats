@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Palawan Five30</title>
+    <style>
+        /* --- BRAND COLOR PALETTE --- */
+        :root {
+            --bg-main: #0a0a0c; 
+            --bg-panel: #141418;
+            --bg-card: #1c1c22;
+            --text-light: #ffffff;
+            --text-muted: #8b8b93;
+            --accent-primary: #ff2a4b; 
+            --accent-secondary: #5c2cff; 
+            --border-color: #2a2a35;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SECURITY LOGIN OVERLAY --- */
+        #securityOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-main); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .login-box { background-color: var(--bg-card); padding: 40px; border-radius: 12px; border: 1px solid var(--accent-primary); box-shadow: 0 0 20px rgba(255, 42, 75, 0.2); text-align: center; width: 350px; }
+        .login-box h2 { margin-bottom: 20px; font-size: 1.5rem; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-main); color: var(--text-light); font-size: 1rem; }
+        .login-box input:focus { outline: none; border-color: var(--accent-primary); }
+        .login-btn { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .login-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        #errorMsg { color: var(--accent-primary); font-size: 0.85rem; margin-top: 10px; display: none; }
+
+        /* --- LEFT SIDEBAR --- */
+        .sidebar { width: 250px; background-color: var(--bg-panel); padding: 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); overflow-y: auto;}
+        .brand-container { margin-bottom: 2rem; }
+        .brand { font-size: 1.3rem; font-weight: bold; color: var(--text-light); display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+        .brand img { width: 35px; height: 35px; border-radius: 6px; object-fit: cover; }
+        .brand-subtitle { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .user-profile { display: flex; align-items: center; gap: 10px; padding: 10px; background-color: var(--bg-main); border-radius: 8px; margin-bottom: 2rem; border: 1px solid var(--border-color);}
+        .user-avatar { width: 35px; height: 35px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white; font-weight: bold;}
+        .user-name { font-size: 0.9rem; font-weight: bold; color: var(--text-light); }
+        .user-role { font-size: 0.7rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; display: block; }
+
+        .menu-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; margin-top: 1rem; }
+        .nav-link { color: var(--text-muted); text-decoration: none; padding: 10px 12px; display: flex; align-items: center; gap: 12px; font-size: 0.9rem; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; cursor: pointer; }
+        .nav-link:hover { background-color: var(--bg-card); color: var(--text-light); }
+        .nav-link.active { background-color: var(--bg-card); color: var(--accent-primary); border-left: 3px solid var(--accent-primary); border-radius: 0 8px 8px 0; }
+        .logout-link { color: #ff4d4d; }
+        .logout-link:hover { background-color: rgba(255, 77, 77, 0.1); }
+
+        /* --- MAIN CONTENT & FORM --- */
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; filter: blur(0px); transition: filter 0.3s; }
+        .page-header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .page-header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .admin-card { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 25px; max-width: 800px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .form-control { width: 100%; background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-light); padding: 12px 15px; border-radius: 8px; font-size: 1rem; transition: 0.3s; }
+        .form-control:focus { outline: none; border-color: var(--accent-secondary); box-shadow: 0 0 8px rgba(92, 44, 255, 0.3); }
+        
+        .form-row { display: flex; gap: 20px; }
+        .form-row .form-group { flex: 1; }
+
+        /* File Upload Custom Style */
+        .file-upload-wrapper { position: relative; width: 100%; height: 150px; border: 2px dashed var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; transition: 0.3s; background-color: var(--bg-main); }
+        .file-upload-wrapper:hover { border-color: var(--accent-primary); background-color: rgba(255, 42, 75, 0.05); }
+        .file-upload-wrapper input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-icon { font-size: 2rem; margin-bottom: 10px; color: var(--text-muted); }
+        .file-text { font-size: 0.9rem; color: var(--text-muted); }
+
+        .btn-submit { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; padding: 12px 30px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px; width: 100%; }
+        .btn-submit:hover { opacity: 0.9; box-shadow: 0 5px 15px rgba(255, 42, 75, 0.4); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div id="securityOverlay">
+        <div class="login-box">
+            <h2>🔒 Admin Access</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Please enter the master password.</p>
+            <input type="password" id="adminPassword" placeholder="Enter Password" onkeypress="handleEnter(event)">
+            <button class="login-btn" onclick="checkPassword()">Log In</button>
+            <p id="errorMsg">❌ Incorrect password. Try again.</p>
+        </div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="brand-container">
+            <div class="brand">
+                <img src="https://i.postimg.cc/8CPGMbbM/419401924-336674062653458-8323897016650203580-n.jpg" alt="Org Logo">
+                <span>UltiStats</span>
+            </div>
+            <div class="brand-subtitle">Palawan Five30 Ultimate Stats Viewer</div>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-avatar">A</div>
+            <div>
+                <span class="user-name">System Admin</span>
+                <span class="user-role">Master Access</span>
+            </div>
+        </div>
+
+        <div class="menu-title">Main</div>
+        <nav>
+            <a href="index.html" class="nav-link"> Dashboard</a>
+            <a href="#" class="nav-link"> News</a>
+        </nav>
+
+        <div class="menu-title">Players</div>
+        <nav>
+            <a href="#" class="nav-link"> Profiles</a>
+            <a href="register.html" class="nav-link"> Register Team and Roster</a>
+        </nav>
+
+        <div class="menu-title">Statistics</div>
+        <nav>
+            <a href="#" class="nav-link"> Player Rankings</a>
+            <a href="#" class="nav-link"> MVP Race</a>
+            <a href="#" class="nav-link"> Team Records</a>
+        </nav>
+        
+    </aside>
+
+    <main class="main-content" id="mainContent">
+        <div class="page-header">
+            <h1>Add New Tournament</h1>
+            <p>Upload tournament details and photos directly to Google Sheets & Drive.</p>
+        </div>
+
+        <div class="admin-card">
+           <form id="tournamentForm">
+                <div class="form-group">
+                    <label>Tournament Name</label>
+                    <input type="text" id="tourneyName" class="form-control" placeholder="e.g., Palawan Ultimate Open 2024" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="tourneyLocation" class="form-control" placeholder="e.g., Puerto Princesa City" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date (Duration)</label>
+                        <input type="text" id="tourneyDate" class="form-control" placeholder="e.g., Oct 12-14, 2024" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Champion Team (Optional)</label>
+                    <input type="text" id="tourneyChampion" class="form-control" placeholder="e.g., Palawan Five30 (Leave blank if upcoming)">
+                </div>
+
+                <div class="form-group">
+                    <label>Tournament Cover Photo</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="tournamentPhoto" accept="image/*" required>
+                        <div class="file-icon">📸</div>
+                        <div class="file-text" id="fileNameDisplay">Click or drag photo here to upload</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">Save to Database</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. SECURITY & LOGIN LOGIC ---
+        
+        // Pwede mong palitan ang "admin123" ng gusto mong password
+        const CORRECT_PASSWORD = "admin"; 
+
+        // I-check kung nakapag-login na ba siya dati (para hindi paulit-ulit)
+        if(localStorage.getItem('isAdminLoggedIn') === 'true') {
+            document.getElementById('securityOverlay').style.display = 'none';
+        }
+
+        // Kapag pinindot ang Log In button
+        function checkPassword() {
+            const enteredPass = document.getElementById('adminPassword').value;
+            if(enteredPass === CORRECT_PASSWORD) {
+                localStorage.setItem('isAdminLoggedIn', 'true'); // I-save sa browser na nakapasok na siya
+                document.getElementById('securityOverlay').style.display = 'none'; // Itago ang login box
+            } else {
+                document.getElementById('errorMsg').style.display = 'block'; // Ipakita ang error
+                document.getElementById('adminPassword').value = ''; // I-clear ang text box
+            }
+        }
+
+        // Para gumana ang "Enter" key sa keyboard
+        function handleEnter(e) {
+            if(e.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        // Kapag pinindot ang Log Out sa sidebar
+        function logoutAdmin() {
+            localStorage.removeItem('isAdminLoggedIn'); // Burahin ang save
+            location.reload(); // I-refresh ang page para lumabas ulit ang login box
+        }
+
+
+        // --- 2. GOOGLE SHEETS UPLOAD LOGIC ---
+
+        document.getElementById('tournamentPhoto').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : "Click or drag photo here to upload";
+            document.getElementById('fileNameDisplay').textContent = fileName;
+        });
+
+        document.getElementById('tournamentForm').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+
+            // Live Google Script URL
+            const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydU4RHhMjL71sLZCGoHzs_xmpN_0e4OXqfMInRp5xBcy2CjjQqz4HvtoSxcFROiTka/exechttps://script.google.com/macros/s/AKfycbydU4RHhMjL71sLZCGoHzs_xmpN_0e4OXqfMInRp5xBcy2CjjQqz4HvtoSxcFROiTka/exechttps://script.google.com/macros/s/AKfycbydU4RHhMjL71sLZCGoHzs_xmpN_0e4OXqfMInRp5xBcy2CjjQqz4HvtoSxcFROiTka/exec"; 
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = "Saving... Please wait ⏳";
+            submitBtn.disabled = true;
+
+            const fileInput = document.getElementById('tournamentPhoto');
+            const file = fileInput.files[0];
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+
+                const formData = {
+                    name: document.getElementById('tourneyName').value,
+                    location: document.getElementById('tourneyLocation').value,
+                    date: document.getElementById('tourneyDate').value,
+                    champion: document.getElementById('tourneyChampion').value || "TBD",
+                    imageFile: base64Data,
+                    imageType: file.type
+                };
+
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        alert("✅ " + data.message);
+                        document.getElementById('tournamentForm').reset();
+                        document.getElementById('fileNameDisplay').textContent = "Click or drag photo here to upload";
+                    } else {
+                        alert("❌ Error: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("❌ Network Error. Please try again.");
+                    console.error(error);
+                })
+                .finally(() => {
+                    submitBtn.textContent = "Save to Database";
+                    submitBtn.disabled = false;
+                });
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+</body>
+</html>
