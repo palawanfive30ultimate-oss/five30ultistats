@@ -63,19 +63,17 @@
             transition: transform 0.3s ease;
         }
 
+        /* TOP BAR BRAND STYLES */
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 25px;
         }
 
         .brand-logo-img {
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
             object-fit: cover;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
@@ -99,15 +97,17 @@
             text-transform: uppercase;
         }
 
-        /* PLAYER PROFILE CARD */
+        /* PLAYER PROFILE CARD & SIDEBAR AUTH */
         .profile-card {
             background: var(--bg-card);
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 30px;
+            padding: 20px 15px;
+            margin-bottom: 25px;
             position: relative;
             text-decoration: none;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .profile-card::before {
@@ -138,9 +138,52 @@
             transition: border-color 0.3s;
         }
 
-        .profile-info { text-align: center; }
+        .profile-info { text-align: center; width: 100%; }
         .profile-name { font-size: 0.95rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; }
         .profile-role { font-size: 0.8rem; color: #f9385b; margin-top: 3px; }
+
+        /* AUTH BUTTONS INSIDE SIDEBAR */
+        .sidebar-auth-container {
+            width: 100%;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .auth-buttons { display: flex; gap: 8px; width: 100%; }
+        .btn-login, .btn-register {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: 0.3s ease;
+        }
+        .btn-login { background: var(--brand-gradient); color: white; border: none; }
+        .btn-login:hover { opacity: 0.9; box-shadow: 0 0 10px rgba(249, 56, 91, 0.4); }
+        .btn-register { background: transparent; color: var(--text-light); border: 1px solid #f9385b; }
+        .btn-register:hover { background: rgba(249, 56, 91, 0.1); }
+        
+        .btn-logout-top { 
+            width: 100%;
+            background: rgba(239, 68, 68, 0.1); 
+            color: var(--live-red); 
+            border: 1px solid var(--live-red); 
+            padding: 8px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+            transition: 0.3s ease; 
+            display: none; 
+            text-align: center;
+        }
+        .btn-logout-top:hover { background: var(--live-red); color: white; }
 
         /* NAV MENU */
         .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -152,27 +195,16 @@
 
         /* MAIN CONTENT AREA */
         .main-content { flex: 1; margin-left: 280px; padding: 20px 40px; display: flex; flex-direction: column; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 25px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        .top-bar-left { display: flex; align-items: center; gap: 15px; }
+        .top-bar-left { display: flex; align-items: center; gap: 20px; }
         .mobile-menu-btn { display: none; background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-        .page-title { font-size: 1.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         
         .top-bar-actions { display: flex; align-items: center; gap: 20px; }
         .search-bar { position: relative; }
         .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .search-bar input { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 15px 8px 35px; border-radius: 20px; color: white; outline: none; width: 250px; }
         .search-bar input:focus { border-color: #f9385b; }
-
-        /* Buttons & Auth Top Bar */
-        .auth-buttons { display: flex; gap: 10px; align-items: center; }
-        .btn-login { background: var(--brand-gradient); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: opacity 0.3s ease; }
-        .btn-login:hover { opacity: 0.9; box-shadow: 0 0 10px rgba(249, 56, 91, 0.4); }
-        .btn-register { background: transparent; color: var(--text-light); border: 1px solid #f9385b; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.3s ease; }
-        .btn-register:hover { background: rgba(249, 56, 91, 0.1); }
-        
-        .btn-logout-top { background: rgba(239, 68, 68, 0.1); color: var(--live-red); border: 1px solid var(--live-red); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.3s ease; display: none; }
-        .btn-logout-top:hover { background: var(--live-red); color: white; }
 
         .flag-icon { width: 24px; border-radius: 3px; }
 
@@ -273,14 +305,19 @@
 
         /* MOBILE RESPONSIVE QUERIES */
         @media (max-width: 992px) {
-            .mobile-menu-btn { display: block; } /* Ipakita ang hamburger btn */
-            .sidebar { transform: translateX(-100%); } /* Itago by default */
-            .sidebar.active { transform: translateX(0); } /* Ipakita kapag active */
+            .mobile-menu-btn { display: block; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 15px; }
             .top-bar-actions .search-bar { display: none; }
             .filter-controls { flex-direction: column; }
         }
-        @media (max-width: 600px) { .form-grid-3 { grid-template-columns: 1fr; gap: 10px; } }
+        @media (max-width: 600px) { 
+            .form-grid-3 { grid-template-columns: 1fr; gap: 10px; } 
+            .brand-text { font-size: 0.95rem; }
+            .brand-logo-img { width: 35px; height: 35px; }
+            .top-bar-left { gap: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -288,23 +325,20 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand">
-            <img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" alt="Org Logo" class="brand-logo-img">
-            
-            <div class="brand-text">
-                Palawan Five30<br>
-                <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
-                    <span style="font-weight:400; font-size:0.9rem;">Ultistats</span>
-                    <span class="beta-badge">BETA</span>
-                </div>
-            </div>
-        </div>
-
+        
         <div class="profile-card">
             <div class="guest-avatar" id="sidebarAvatar"><i class="fas fa-user"></i></div>
             <div class="profile-info">
                 <div class="profile-name" id="sidebarName">Guest User</div>
                 <div class="profile-role" id="sidebarRole">Please log in</div>
+            </div>
+
+            <div class="sidebar-auth-container">
+                <div class="auth-buttons" id="topAuthButtons">
+                    <button class="btn-login" onclick="openModal('loginModal')">Log In</button>
+                    <button class="btn-register" onclick="openModal('registerModal')">Register</button>
+                </div>
+                <button class="btn-logout-top" id="topLogoutBtn" onclick="handleLogout()">Log out</button>
             </div>
         </div>
 
@@ -320,7 +354,17 @@
         <header class="top-bar">
             <div class="top-bar-left">
                 <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                <div class="page-title">ULTISTATS PORTAL</div>
+                
+                <div class="brand">
+                    <img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" alt="Org Logo" class="brand-logo-img">
+                    <div class="brand-text">
+                        Palawan Five30
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                            <span style="font-weight:400; font-size:0.85rem; text-transform:none;">Ultistats</span>
+                            <span class="beta-badge">BETA</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="top-bar-actions">
@@ -328,14 +372,6 @@
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search players, matches...">
                 </div>
-                
-                <div class="auth-buttons" id="topAuthButtons">
-                    <button class="btn-login" onclick="openModal('loginModal')">Log In</button>
-                    <button class="btn-register" onclick="openModal('registerModal')">Register</button>
-                </div>
-                
-                <button class="btn-logout-top" id="topLogoutBtn" onclick="handleLogout()">Log out</button>
-
                 <img src="https://flagcdn.com/w40/ph.png" alt="PH" class="flag-icon">
             </div>
         </header>
@@ -556,15 +592,11 @@
     </div>
 
     <script>
-        // PALITAN ITONG URL NG IYONG MA-DEPLOY NA BAGONG SCRIPT URL KUNG NAGBAGO!
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfOAyH8_OD_Jctcwu1qjmAksIoVCgqMqehyh3m6M55Q20NtQeeHOQE1D6UHoFV6eVH/exec"; 
 
         let globalEvents = [];
         let currentTab = 'upcoming';
 
-        // ==========================================
-        // 🔄 INITIALIZATION (On Page Load)
-        // ==========================================
         window.onload = function() {
             const savedUser = localStorage.getItem('f30_user_session');
             if (savedUser) {
@@ -577,25 +609,17 @@
             const tabElement = document.getElementById(savedTabId);
             if(tabElement) switchView(savedViewId, tabElement);
 
-            // Awtomatikong kukuha ng Realtime Data mula sa Sheets
             fetchDashboardData();
 
-            // Filters Trigger Event Setup
             document.getElementById('monthFilter').addEventListener('change', renderEvents);
             document.getElementById('yearFilter').addEventListener('change', renderEvents);
         };
 
-        // ==========================================
-        // 📱 MOBILE SIDEBAR TOGGLE
-        // ==========================================
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
         }
 
-        // ==========================================
-        // 📡 DATA FETCHING FROM GOOGLE SHEETS
-        // ==========================================
         async function fetchDashboardData() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
@@ -612,16 +636,12 @@
             }
         }
 
-        // ==========================================
-        // 🖼️ DYNAMIC RENDERING LOGIC (Cards Renderer)
-        // ==========================================
         function renderEvents() {
             const container = document.getElementById('eventListContainer');
             const homeUpcomingContainer = document.getElementById('upcomingEventsContainer');
             const monthSel = document.getElementById('monthFilter').value;
             const yearSel = document.getElementById('yearFilter').value;
             
-            // Filter Engine logic base sa dropdowns at active tabs
             let filtered = globalEvents.filter(evt => {
                 if (yearSel !== 'all' && !evt.EventDate.includes(yearSel)) return false;
                 
@@ -634,7 +654,6 @@
                     if (!evt.EventDate.toLowerCase().includes(matchMonthStr.toLowerCase())) return false;
                 }
                 
-                // Diskarte para sa Past vs Upcoming tabs base sa string keyword ng taon
                 const isPast = evt.EventDate.includes("2025");
                 if (currentTab === 'past' && !isPast) return false;
                 if (currentTab === 'upcoming' && isPast) return false;
@@ -642,7 +661,6 @@
                 return true;
             });
 
-            // I-render ang hanggang tatlong preview cards sa HOME dashboard view
             const homeUpcomingOnly = globalEvents.filter(evt => !evt.EventDate.includes("2025"));
             if (homeUpcomingContainer) {
                 if (homeUpcomingOnly.length === 0) {
@@ -660,7 +678,6 @@
                 return;
             }
 
-            // Kilalanin kung Admin ang kasalukuyang user session para magpakita ng Delete button
             const savedUser = localStorage.getItem('f30_user_session');
             const isAdmin = savedUser ? JSON.parse(savedUser).role === 'Admin' : false;
 
@@ -674,17 +691,16 @@
             const defaultImg = "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=500&q=80";
             const finalImg = (evt.PhotoUrl && evt.PhotoUrl !== "No Photo") ? evt.PhotoUrl : defaultImg;
             
-            // MAPAPANSIN MO NA PINALITAN KO ANG evt.location AT evt.category NG MALALAKING TITIK
             return `
                 <div class="event-card">
                     <img src="${finalImg}" class="event-card-img" alt="Event Banner">
                     <div class="event-card-body">
                         <div class="event-card-title">${evt.EventName}</div>
                         <div class="event-card-detail"><i class="far fa-calendar-alt"></i> ${evt.EventDate}</div>
-                        <div class="event-card-detail"><i class="fas fa-map-marker-alt"></i> ${evt.Location}</div>
+                        <div class="event-card-detail"><i class="fas fa-map-marker-alt"></i> ${evt.Location || evt.location}</div>
                     </div>
                     <div class="event-card-footer">
-                        <span class="event-badge-cat">${evt.Category}</span>
+                        <span class="event-badge-cat">${evt.Category || evt.category}</span>
                         ${showDeleteBtn ? `<button class="btn-delete-event" onclick="handleDeleteEvent('${evt.EventName.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i> Delete</button>` : ''}
                     </div>
                 </div>
@@ -711,9 +727,6 @@
             container.innerHTML = html;
         }
 
-        // ==========================================
-        // 🗑️ DELETE EVENT REQUEST HANDLER
-        // ==========================================
         async function handleDeleteEvent(eventName) {
             if (!confirm(`Sigurado ka bang gusto mong burahin ang event na "${eventName}"?`)) {
                 return;
@@ -740,9 +753,6 @@
             }
         }
 
-        // ==========================================
-        // 🪟 NAVIGATION & VIEWS
-        // ==========================================
         function switchView(viewId, clickedTab) {
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
@@ -753,7 +763,6 @@
             localStorage.setItem('f30_active_view', viewId);
             localStorage.setItem('f30_active_tab', clickedTab.id);
 
-            // Awtomatikong isara ang sidebar sa phone kapag pumili na ng menu
             if (window.innerWidth <= 992) {
                 document.getElementById('sidebar').classList.remove('active');
                 document.getElementById('sidebarOverlay').classList.remove('active');
@@ -789,9 +798,6 @@
             else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); }
         }
 
-        // ==========================================
-        // 🎫 EVENT CREATION LOGIC
-        // ==========================================
         function toggleTBA(inputId, checkbox) {
             const input = document.getElementById(inputId);
             if (checkbox.checked) {
@@ -840,8 +846,6 @@
                 });
             }
 
-            // NA-FIX NA RIN ITO: Pinalitan ang eventLocation/eventCategory ng location/category 
-            // para pumunta siya ng maayos sa database ni Google
             const payload = {
                 action: 'addEvent',
                 eventName: eventName,
@@ -879,14 +883,11 @@
             }
         }
 
-        // ==========================================
-        // 🔐 LOGIN LOGIC
-        // ==========================================
         function applyLoggedInState(user) {
             document.getElementById('sidebarName').innerText = user.firstName + ' ' + user.lastName;
             document.getElementById('sidebarRole').innerText = user.role;
             document.getElementById('topAuthButtons').style.display = 'none';
-            document.getElementById('topLogoutBtn').style.display = 'inline-block';
+            document.getElementById('topLogoutBtn').style.display = 'block';
             document.getElementById('sidebarAvatar').style.borderColor = 'var(--admin-green)';
             document.getElementById('sidebarRole').style.color = 'var(--admin-green)';
 
@@ -927,9 +928,6 @@
             }
         }
 
-        // ==========================================
-        // 🚪 LOGOUT LOGIC
-        // ==========================================
         function handleLogout() {
             localStorage.removeItem('f30_user_session');
 
@@ -945,9 +943,6 @@
             renderEvents(); 
         }
 
-        // ==========================================
-        // 📝 REGISTRATION LOGIC
-        // ==========================================
         async function handleRegistration(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('regSubmitBtn');
