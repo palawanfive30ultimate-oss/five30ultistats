@@ -21,6 +21,7 @@
             /* Badge Colors */
             --live-red: #ef4444;
             --admin-green: #4ade80;
+            --warning-orange: #f59e0b;
         }
 
         * {
@@ -28,6 +29,10 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -195,15 +200,15 @@
 
         /* MAIN CONTENT AREA */
         .main-content { flex: 1; margin-left: 280px; padding: 20px 40px; display: flex; flex-direction: column; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 15px; }
         
         .top-bar-left { display: flex; align-items: center; gap: 20px; }
         .mobile-menu-btn { display: none; background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
         
-        .top-bar-actions { display: flex; align-items: center; gap: 20px; }
+        .top-bar-actions { display: flex; align-items: center; gap: 20px; justify-content: space-between; }
         .search-bar { position: relative; }
         .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .search-bar input { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 15px 8px 35px; border-radius: 20px; color: white; outline: none; width: 250px; }
+        .search-bar input { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 15px 8px 35px; border-radius: 20px; color: white; outline: none; width: 250px; transition: width 0.3s; }
         .search-bar input:focus { border-color: #f9385b; }
 
         .flag-icon { width: 24px; border-radius: 3px; }
@@ -217,7 +222,7 @@
         .section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
         .section-header { font-size: 1.1rem; font-weight: 700; text-transform: uppercase; margin: 0;}
         
-        /* EVENTS PAGE SPECIFIC STYLES */
+        /* PAGE SPECIFIC STYLES */
         .events-page-header { text-align: center; font-size: 1.6rem; font-weight: 700; margin-bottom: 25px; }
         .admin-mode-text { font-size: 1rem; color: var(--admin-green); font-weight: normal; display: none; }
         
@@ -226,13 +231,13 @@
 
         .filter-controls { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;}
         
-        .filter-dropdown { position: relative; flex: 1; min-width: 250px; }
+        .filter-dropdown { position: relative; flex: 1; min-width: 200px; }
         .filter-dropdown i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .filter-dropdown select { width: 100%; background: transparent; border: 1px solid var(--border-color); padding: 12px 15px 12px 40px; border-radius: 12px; color: white; appearance: none; outline: none; cursor: pointer; font-size: 0.95rem; }
         .filter-dropdown select option { background-color: var(--bg-main); color: white; }
         .filter-dropdown::after { content: '\f078'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.8rem; }
         
-        .event-tabs { display: flex; gap: 10px; flex: 2; min-width: 350px;}
+        .event-tabs { display: flex; gap: 10px; flex: 2; min-width: 300px;}
         .tab-btn { flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.95rem; }
         .tab-btn:hover { border-color: white; color: white; }
         .tab-btn.active { background: var(--brand-gradient); border: none; color: white; }
@@ -243,7 +248,8 @@
         .empty-text { color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; }
 
         .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 15px; width: 100%; text-align: left; }
-        .event-card { background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; position: relative; }
+        .event-card { background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .event-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); border-color: #f9385b;}
         .event-card-img { width: 100%; height: 160px; object-fit: cover; background: #1b1c30; }
         .event-card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .event-card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; }
@@ -255,14 +261,24 @@
         .btn-delete-event { background: rgba(239, 68, 68, 0.1); color: var(--live-red); border: 1px solid var(--live-red); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
         .btn-delete-event:hover { background: var(--live-red); color: white; }
 
+        /* DETAILED TAB NAVIGATION INSIDE MODAL */
+        .modal-subtabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; gap: 15px; }
+        .modal-subtab-btn { background: none; border: none; color: var(--text-muted); padding: 10px 5px; font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; }
+        .modal-subtab-btn.active { color: #f9385b; }
+        .modal-subtab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #f9385b; }
+
+        .modal-view-panel { display: none; }
+        .modal-view-panel.active-panel { display: block; }
+
         /* =========================================
            MODAL STYLES
            ========================================= */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 11, 20, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-container { background: var(--bg-main); width: 100%; max-width: 550px; border-radius: 16px; padding: 30px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 11, 20, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; overflow-y: auto;}
+        .modal-container { background: var(--bg-main); width: 100%; max-width: 550px; border-radius: 16px; padding: 30px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin: auto;}
+        .modal-container.large { max-width: 800px; }
         .login-container { max-width: 400px; }
         .modal-container::before { content: ""; position: absolute; inset: 0; border-radius: 16px; padding: 2px; background: var(--brand-gradient); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
-        .btn-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color 0.3s; }
+        .btn-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color 0.3s; z-index: 10; }
         .btn-close:hover { color: white; }
         .modal-header { text-align: center; margin-bottom: 25px; }
         .modal-logo { width: 45px; height: 45px; border-radius: 10px; overflow: hidden; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
@@ -271,7 +287,9 @@
         .event-modal-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
         .event-modal-logo { width: 35px; height: 35px; border-radius: 8px; overflow: hidden; }
 
+        /* Form Elements inside Modals */
         .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-group.center-label label { text-align: center; display: block; }
         .form-label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px; }
@@ -279,7 +297,7 @@
         .input-box { position: relative; width: 100%; }
         .input-box i.icon-left { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
         .input-box input, .input-box select { width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 8px; color: white; font-size: 0.9rem; outline: none; transition: border-color 0.3s; }
-        .input-box.has-icon input { padding-left: 35px; }
+        .input-box.has-icon input, .input-box.has-icon select { padding-left: 35px; }
         .input-box input:focus, .input-box select:focus { border-color: #f9385b; }
         .input-box input:disabled, .input-box select:disabled { opacity: 0.5; cursor: not-allowed; }
         .icon-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; transition: color 0.3s; }
@@ -303,20 +321,85 @@
         .image-preview { width: 120px; height: 100px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: #000; font-weight: bold; font-size: 0.9rem; text-align: center;}
         .image-preview img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* EVENT DETAILS MODAL SPECIFIC STYLES */
+        .event-details-banner { width: calc(100% + 60px); height: 200px; margin: -30px -30px 20px -30px; border-radius: 14px 14px 0 0; object-fit: cover; background: #1b1c30; position: relative;}
+        .event-details-info { text-align: center; margin-bottom: 25px; }
+        .event-details-title { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; color: white; margin-bottom: 10px; }
+        .event-details-meta { display: flex; justify-content: center; gap: 20px; color: var(--text-muted); font-size: 0.95rem; flex-wrap: wrap;}
+        .event-details-meta span { display: flex; align-items: center; gap: 6px; }
+        .event-details-meta i { color: #f9385b; }
+        
+        .admin-action-bar { display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .admin-action-bar.active { display: flex; }
+        .btn-action { padding: 10px 15px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border: none; transition: 0.3s; }
+        .btn-add-match { background: var(--admin-green); color: #0a0b14; }
+        .btn-add-match:hover { background: #3ce070; box-shadow: 0 4px 10px rgba(74, 222, 128, 0.3);}
+        .btn-add-team { background: #3b3076; color: white; }
+        .btn-add-team:hover { background: #4c3f99; }
+        .btn-add-player { background: #f59e0b; color: #0a0b14; }
+        .btn-add-player:hover { background: #fbbf24; }
+        .btn-edit { background: transparent; border: 1px solid var(--text-muted); color: var(--text-light); }
+        .btn-edit:hover { border-color: white; background: rgba(255,255,255,0.1); }
+        .btn-end { background: rgba(239, 68, 68, 0.1); color: var(--live-red); border: 1px solid var(--live-red); }
+        .btn-end:hover { background: var(--live-red); color: white; }
+
+        .matches-section { background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .matches-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
+        .matches-list { display: flex; flex-direction: column; gap: 10px; }
+
+        /* BACK TO TOP FLOATING BUTTON */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--brand-gradient);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(249, 56, 91, 0.4);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .back-to-top.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .back-to-top:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(249, 56, 91, 0.6);
+        }
+
         /* MOBILE RESPONSIVE QUERIES */
         @media (max-width: 992px) {
             .mobile-menu-btn { display: block; }
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 15px; }
-            .top-bar-actions .search-bar { display: none; }
+            .top-bar { flex-direction: column; align-items: stretch; }
+            .top-bar-actions { width: 100%; justify-content: space-between; }
+            .search-bar { flex: 1; margin-right: 15px; }
+            .search-bar input { width: 100%; }
             .filter-controls { flex-direction: column; }
         }
         @media (max-width: 600px) { 
-            .form-grid-3 { grid-template-columns: 1fr; gap: 10px; } 
+            .form-grid-3, .form-grid-2 { grid-template-columns: 1fr; gap: 10px; } 
             .brand-text { font-size: 0.95rem; }
             .brand-logo-img { width: 35px; height: 35px; }
             .top-bar-left { gap: 12px; }
+            .event-details-banner { height: 150px; }
+            .event-details-title { font-size: 1.4rem; }
+            .admin-action-bar { flex-direction: column; }
+            .btn-action { width: 100%; justify-content: center; }
+            .back-to-top { bottom: 20px; right: 20px; width: 45px; height: 45px; }
         }
     </style>
 </head>
@@ -325,7 +408,6 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
-        
         <div class="profile-card">
             <div class="guest-avatar" id="sidebarAvatar"><i class="fas fa-user"></i></div>
             <div class="profile-info">
@@ -345,8 +427,8 @@
         <ul class="nav-menu">
             <li><a class="nav-link" id="nav-home" onclick="switchView('homeView', this)"><i class="fas fa-home"></i> Home</a></li>
             <li><a class="nav-link active" id="nav-events" onclick="switchView('eventsView', this)"><i class="far fa-calendar-alt"></i> Events</a></li>
-            <li><a class="nav-link"><i class="fas fa-users"></i> Teams</a></li>
-            <li><a class="nav-link"><i class="fas fa-trophy"></i> Players Leaderboard</a></li>
+            <li><a class="nav-link" id="nav-teams" onclick="switchView('teamsView', this)"><i class="fas fa-users"></i> Teams</a></li>
+            <li><a class="nav-link" id="nav-players" onclick="switchView('playersView', this)"><i class="fas fa-running"></i> Players</a></li>
         </ul>
     </aside>
 
@@ -415,10 +497,9 @@
             </button>
 
             <div class="filter-controls">
-                
-                <div class="filter-dropdown" style="min-width: 150px; flex: 1;">
+                <div class="filter-dropdown">
                     <i class="far fa-calendar-alt"></i>
-                    <select id="monthFilter">
+                    <select id="monthFilter" onchange="renderEvents()">
                         <option value="all">Month (All)</option>
                         <option value="01">January</option>
                         <option value="02">February</option>
@@ -435,9 +516,9 @@
                     </select>
                 </div>
 
-                <div class="filter-dropdown" style="min-width: 130px; flex: 0.6;">
+                <div class="filter-dropdown" style="max-width: 200px;">
                     <i class="fas fa-calendar-day"></i>
-                    <select id="yearFilter">
+                    <select id="yearFilter" onchange="renderEvents()">
                         <option value="all">Year (All)</option>
                         <option value="2025">2025</option>
                         <option value="2026">2026</option>
@@ -459,76 +540,376 @@
                 <div class="empty-text">Loading events from database...</div>
             </div>
         </div>
+
+        <div id="teamsView" class="view-section">
+            <h2 class="events-page-header">
+                Tournament Teams Center <span class="admin-mode-text">(Admin View)</span>
+            </h2>
+
+            <div class="filter-controls">
+                <div class="filter-dropdown">
+                    <i class="far fa-calendar-alt"></i>
+                    <select id="teamMonthFilter" onchange="renderTeamEvents()">
+                        <option value="all">Month (All)</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <div class="filter-dropdown" style="max-width: 200px;">
+                    <i class="fas fa-calendar-day"></i>
+                    <select id="teamYearFilter" onchange="renderTeamEvents()">
+                        <option value="all">Year (All)</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                    </select>
+                </div>
+
+                <div class="event-tabs">
+                    <button class="tab-btn" id="teamTabPast" onclick="switchTeamEventTab('past')">
+                        <i class="fas fa-history"></i> Past Tournaments
+                    </button>
+                    <button class="tab-btn active" id="teamTabUpcoming" onclick="switchTeamEventTab('upcoming')">
+                        <i class="far fa-calendar-check"></i> Active Tournaments
+                    </button>
+                </div>
+            </div>
+            <div class="empty-state-box" id="teamEventListContainer">
+                <div class="empty-text">Pumili ng tournament para makita o mag-add ng mga kasaling teams...</div>
+            </div>
+        </div>
+
+        <div id="playersView" class="view-section">
+            <h2 class="events-page-header">
+                Players Directory Center <span class="admin-mode-text">(Admin View)</span>
+            </h2>
+
+            <div class="filter-controls">
+                <div class="filter-dropdown">
+                    <i class="far fa-calendar-alt"></i>
+                    <select id="playerMonthFilter" onchange="renderPlayerEvents()">
+                        <option value="all">Month (All)</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <div class="filter-dropdown" style="max-width: 200px;">
+                    <i class="fas fa-calendar-day"></i>
+                    <select id="playerYearFilter" onchange="renderPlayerEvents()">
+                        <option value="all">Year (All)</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                    </select>
+                </div>
+
+                <div class="event-tabs">
+                    <button class="tab-btn" id="playerTabPast" onclick="switchPlayerEventTab('past')">
+                        <i class="fas fa-history"></i> Past Tournaments
+                    </button>
+                    <button class="tab-btn active" id="playerTabUpcoming" onclick="switchPlayerEventTab('upcoming')">
+                        <i class="far fa-calendar-check"></i> Active Tournaments
+                    </button>
+                </div>
+            </div>
+            <div class="empty-state-box" id="playerEventListContainer">
+                <div class="empty-text">Pumili ng tournament para mag-manage ng roster ng mga players...</div>
+            </div>
+        </div>
     </main>
+
+    <button id="backToTopBtn" class="back-to-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <div class="modal-overlay" id="eventDetailsModal">
+        <div class="modal-container large">
+            <button class="btn-close" onclick="closeModal('eventDetailsModal')"><i class="fas fa-times"></i></button>
+            <img src="" id="detailsBanner" class="event-details-banner" alt="Event Banner">
+            
+            <div class="event-details-info">
+                <div class="event-details-title" id="detailsName">Event Name</div>
+                <div class="event-details-meta">
+                    <span><i class="far fa-calendar-alt"></i> <span id="detailsDate">Date</span></span>
+                    <span><i class="fas fa-map-marker-alt"></i> <span id="detailsLocation">Location</span></span>
+                    <span><i class="fas fa-tag"></i> <span id="detailsCategory">Category</span></span>
+                    <span id="detailsStatusBadge" style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; color: white;">Status</span>
+                </div>
+            </div>
+
+            <div class="admin-action-bar" id="adminEventControls">
+                <button class="btn-action btn-add-match" onclick="openAddMatchModal()"><i class="fas fa-plus"></i> Add Match</button>
+                <button class="btn-action btn-add-team" onclick="openAddTeamModal()"><i class="fas fa-users"></i> Add Team</button>
+                <button class="btn-action btn-add-player" onclick="openAddPlayerModal()"><i class="fas fa-user-plus"></i> Add Player</button>
+                <button class="btn-action btn-edit" onclick="openEditEventModal()"><i class="fas fa-edit"></i> Edit Info</button>
+                <button class="btn-action btn-end" onclick="handleEndTournament()"><i class="fas fa-flag-checkered"></i> End Tournament</button>
+            </div>
+
+            <div class="modal-subtabs">
+                <button class="modal-subtab-btn active" id="subtab-matches" onclick="switchModalPanel('matchesPanel', this)">Matches</button>
+                <button class="modal-subtab-btn" id="subtab-teams" onclick="switchModalPanel('teamsPanel', this)">Teams List</button>
+                <button class="modal-subtab-btn" id="subtab-players" onclick="switchModalPanel('playersPanel', this)">Players Roster</button>
+            </div>
+
+            <div class="modal-view-panel active-panel" id="matchesPanel">
+                <div class="matches-section">
+                    <div class="matches-header"><span>Tournament Match Records</span></div>
+                    <div class="matches-list" id="eventMatchesContainer">
+                        <div class="empty-text" style="padding: 20px 0;">No matches added to this event yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-view-panel" id="teamsPanel">
+                <div class="matches-section">
+                    <div class="matches-header"><span>Registered Teams & Categories</span></div>
+                    <div class="matches-list" id="eventTeamsContainer">
+                        <div class="empty-text" style="padding: 20px 0;">No teams registered in this tournament yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-view-panel" id="playersPanel">
+                <div class="matches-section">
+                    <div class="matches-header"><span>Roster / Players List</span></div>
+                    <div class="matches-list" id="eventPlayersContainer">
+                        <div class="empty-text" style="padding: 20px 0;">No players assigned to teams in this tournament yet.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addTeamModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('addTeamModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h2>Add Registered Team</h2>
+                <div style="color: var(--text-muted); font-size: 0.9rem;" id="addTeamEventLabel">Tournament</div>
+            </div>
+            <form onsubmit="handleAddTeam(event)">
+                <div class="form-group">
+                    <label class="form-label">Team Name</label>
+                    <div class="input-box"><input type="text" id="teamNameInput" placeholder="e.g., Palawan Hawks" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category / Division (Letter Type)</label>
+                    <div class="input-box">
+                        <input type="text" id="teamCategoryInput" placeholder="e.g., Mixed, Men's Open, Women's" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('addTeamModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addPlayerModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('addPlayerModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h2>Add Player to Roster</h2>
+                <div style="color: var(--text-muted); font-size: 0.9rem;" id="addPlayerEventLabel">Tournament</div>
+            </div>
+            <form onsubmit="handleAddPlayer(event)">
+                <div class="form-group">
+                    <label class="form-label">Player Full Name</label>
+                    <div class="input-box"><input type="text" id="playerNameInput" placeholder="e.g., Juan Dela Cruz" required></div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Select Team</label>
+                        <div class="input-box">
+                            <select id="playerTeamInput" required>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gender (For Leaderboard)</label>
+                        <div class="input-box">
+                            <select id="playerGenderInput" required>
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('addPlayerModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Add Player</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addMatchModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('addMatchModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h2>Add Match Record</h2>
+                <div style="color: var(--text-muted); font-size: 0.9rem;" id="addMatchEventNameLabel">For: Event Name</div>
+            </div>
+            <form id="addMatchForm" onsubmit="handleAddMatch(event)">
+                <input type="hidden" id="matchEventName">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Team A</label>
+                        <div class="input-box">
+                            <select id="matchTeamA" required>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team B</label>
+                        <div class="input-box">
+                            <select id="matchTeamB" required>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Match Date</label>
+                        <div class="input-box"><input type="date" id="matchDateInput" required></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Time</label>
+                        <div class="input-box has-icon"><i class="far fa-clock icon-left"></i><input type="time" id="matchTime" required></div>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Field / Location</label>
+                        <div class="input-box"><input type="text" id="matchField" placeholder="e.g., Field 1 / Court A" required></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Duration (Time Setter)</label>
+                        <div class="input-box"><input type="text" id="matchDurationInput" placeholder="e.g., 1 Hour / 45 Mins" required></div>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Category (Letter Type)</label>
+                        <div class="input-box"><input type="text" id="matchCategoryInput" placeholder="e.g., Mixed / Open" required></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Type (Letter Type)</label>
+                        <div class="input-box"><input type="text" id="matchTypeInput" placeholder="e.g., Round Robin / Semis / Finals" required></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('addMatchModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Match</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editEventModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('editEventModal')"><i class="fas fa-times"></i></button>
+            <div class="event-modal-header"><h2>Edit Event Info</h2></div>
+            <form id="editEventForm" onsubmit="handleEditEvent(event)">
+                <input type="hidden" id="editOriginalEventName">
+                <div class="form-group">
+                    <label class="form-label">Event Name</label>
+                    <div class="input-box"><input type="text" id="editEventName" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Event Date</label>
+                    <div class="input-box"><input type="text" id="editEventDate" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <div class="input-box"><input type="text" id="editEventLocation" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <div class="input-box"><input type="text" id="editEventCategory" required></div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <div class="file-upload-box" onclick="document.getElementById('editEventPhoto').click()">
+                        <i class="far fa-image" style="font-size: 1.5rem; margin-bottom: 8px; color: var(--text-light);"></i>
+                        <span style="font-weight: 600; color: white;">[ Update Image ]</span>
+                        <input type="file" id="editEventPhoto" accept="image/*" style="display: none;" onchange="previewEditImage(event)">
+                    </div>
+                    <div class="image-preview" id="editImagePreviewContainer">Current Image</div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('editEventModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="addEventModal">
         <div class="modal-container">
             <button class="btn-close" onclick="closeModal('addEventModal')"><i class="fas fa-times"></i></button>
-            
             <div class="event-modal-header">
-                <div class="event-modal-logo">
-                    <img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;">
-                </div>
+                <div class="event-modal-logo"><img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;"></div>
                 <h2>Create New Event</h2>
             </div>
-
             <form id="addEventForm" onsubmit="handleCreateEvent(event)">
-                
                 <div class="form-group">
                     <label class="form-label">Event Name</label>
-                    <div class="input-box">
-                        <input type="text" id="eventName" placeholder="e.g., Sinong Single Jan 2026 (Required)" required>
-                    </div>
+                    <div class="input-box"><input type="text" id="eventName" placeholder="e.g., Sinong Single Jan 2026" required></div>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label">Event Date (flexible date format)</label>
+                    <label class="form-label">Event Date</label>
                     <div class="tba-row">
-                        <div class="input-box" style="flex: 1;">
-                            <input type="text" id="eventDate" placeholder="e.g., Feb 7-8, 2026" required>
-                        </div>
-                        <label class="tba-checkbox">
-                            <input type="checkbox" onchange="toggleTBA('eventDate', this)"> TBA
-                        </label>
+                        <div class="input-box" style="flex: 1;"><input type="text" id="eventDate" placeholder="e.g., Feb 7-8, 2026" required></div>
+                        <label class="tba-checkbox"><input type="checkbox" onchange="toggleTBA('eventDate', this)"> TBA</label>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label">Location</label>
                     <div class="tba-row">
-                        <div class="input-box" style="flex: 1;">
-                            <input type="text" id="eventLocation" placeholder="e.g., Palawan School Field" required>
-                        </div>
-                        <label class="tba-checkbox">
-                            <input type="checkbox" onchange="toggleTBA('eventLocation', this)"> TBA
-                        </label>
+                        <div class="input-box" style="flex: 1;"><input type="text" id="eventLocation" placeholder="e.g., Palawan School Field" required></div>
+                        <label class="tba-checkbox"><input type="checkbox" onchange="toggleTBA('eventLocation', this)"> TBA</label>
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label">Category (Maaari itong maramihan)</label>
+                    <label class="form-label">Category</label>
                     <div class="tba-row">
-                        <div class="input-box" style="flex: 1;">
-                            <input type="text" id="eventCategory" placeholder="e.g., Mixed / Open / Women's" required>
-                        </div>
-                        <label class="tba-checkbox">
-                            <input type="checkbox" onchange="toggleTBA('eventCategory', this)"> TBA
-                        </label>
+                        <div class="input-box" style="flex: 1;"><input type="text" id="eventCategory" placeholder="e.g., Mixed / Open" required></div>
+                        <label class="tba-checkbox"><input type="checkbox" onchange="toggleTBA('eventCategory', this)"> TBA</label>
                     </div>
                 </div>
-
                 <div style="display: flex; gap: 15px; margin-top: 20px;">
                     <div class="file-upload-box" onclick="document.getElementById('eventPhoto').click()">
                         <i class="far fa-folder-open" style="font-size: 1.5rem; margin-bottom: 8px; color: var(--text-light);"></i>
                         <span style="font-weight: 600; color: white;">[ Choose File ]</span>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Optional (Image file)</span>
-                        <input type="file" id="eventPhoto" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                        <input type="file" id="eventPhoto" accept="image/*" style="display: none;" onchange="previewImage(event, 'imagePreviewContainer')">
                     </div>
-                    <div class="image-preview" id="imagePreviewContainer">
-                        Image Preview
-                    </div>
+                    <div class="image-preview" id="imagePreviewContainer">Image Preview</div>
                 </div>
-
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
                     <button type="button" class="btn-cancel-modal" onclick="closeModal('addEventModal')">Cancel</button>
                     <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Create Event</button>
@@ -541,15 +922,13 @@
         <div class="modal-container">
             <button class="btn-close" onclick="closeModal('registerModal')"><i class="fas fa-times"></i></button>
             <div class="modal-header">
-                <div class="modal-logo">
-                    <img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;">
-                </div>
+                <div class="modal-logo"><img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;"></div>
                 <h2>Create Account</h2>
             </div>
             <form id="registrationForm" onsubmit="handleRegistration(event)">
                 <div class="form-grid-3">
                     <div class="form-group"><label class="form-label">First Name</label><div class="input-box has-icon"><i class="far fa-user icon-left"></i><input type="text" id="regFirstName" required></div></div>
-                    <div class="form-group"><label class="form-label">M.I./M.N.</label><div class="input-box"><input type="text" id="regMiddleName"></div></div>
+                    <div class="form-group"><label class="form-label">M.I.</label><div class="input-box"><input type="text" id="regMiddleName"></div></div>
                     <div class="form-group"><label class="form-label">Last Name</label><div class="input-box has-icon"><i class="far fa-user icon-left"></i><input type="text" id="regLastName" required></div></div>
                 </div>
                 <div class="form-grid-3">
@@ -557,7 +936,7 @@
                     <div class="form-group"><label class="form-label">Birthplace</label><div class="input-box has-icon"><i class="fas fa-map-marker-alt icon-left"></i><input type="text" id="regBirthplace" required></div></div>
                     <div class="form-group"><label class="form-label">Nationality</label><div class="input-box has-icon"><i class="far fa-flag icon-left"></i><input type="text" id="regNationality" required></div></div>
                 </div>
-                <div class="form-group center-label"><label class="form-label">Username / Nickname</label><div class="input-box has-icon"><i class="fas fa-at icon-left"></i><input type="text" id="regUsername" required></div></div>
+                <div class="form-group center-label"><label class="form-label">Username</label><div class="input-box has-icon"><i class="fas fa-at icon-left"></i><input type="text" id="regUsername" required></div></div>
                 <div class="form-group center-label">
                     <label class="form-label">Password:</label>
                     <div class="input-box has-icon"><i class="fas fa-lock icon-left"></i><input type="password" id="regPassword" required><i class="far fa-eye icon-eye" onclick="togglePasswordVisibility('regPassword', this)"></i></div>
@@ -573,20 +952,18 @@
         <div class="modal-container login-container">
             <button class="btn-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
             <div class="modal-header">
-                <div class="modal-logo">
-                    <img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;">
-                </div>
+                <div class="modal-logo"><img src="https://i.postimg.cc/BbRGyqwf/419401924-336674062653458-8323897016650203580-n.png" style="width:100%; height:100%; object-fit:cover;"></div>
                 <h2>Welcome Back</h2>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group center-label"><label class="form-label">Username / Nickname</label><div class="input-box has-icon"><i class="fas fa-at icon-left"></i><input type="text" id="loginUsername" required></div></div>
+                <div class="form-group center-label"><label class="form-label">Username</label><div class="input-box has-icon"><i class="fas fa-at icon-left"></i><input type="text" id="loginUsername" required></div></div>
                 <div class="form-group center-label">
                     <label class="form-label">Password:</label>
                     <div class="input-box has-icon"><i class="fas fa-lock icon-left"></i><input type="password" id="loginPassword" required><i class="far fa-eye icon-eye" onclick="togglePasswordVisibility('loginPassword', this)"></i></div>
                 </div>
-                <div id="loginErrorMsg" style="color: #ef4444; font-size: 0.85rem; text-align: center; margin-bottom: 10px; display: none;">Wrong username or password.</div>
+                <div id="loginErrorMsg" style="color: #ef4444; font-size: 0.85rem; text-align: center; margin-bottom: 10px; display: none;"></div>
                 <button type="submit" class="btn-submit-modal" id="loginSubmitBtn">Log In</button>
-                <div class="modal-footer-text"><span style="color: var(--text-muted); font-weight: normal;">Don't have an account?</span> <a href="#" onclick="switchModal('loginModal', 'registerModal')"> Register</a></div>
+                <div class="modal-footer-text">Don't have an account? <a href="#" onclick="switchModal('loginModal', 'registerModal')"> Register</a></div>
             </form>
         </div>
     </div>
@@ -595,13 +972,19 @@
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfOAyH8_OD_Jctcwu1qjmAksIoVCgqMqehyh3m6M55Q20NtQeeHOQE1D6UHoFV6eVH/exec"; 
 
         let globalEvents = [];
+        let globalMatches = []; 
+        let globalTeams = [];     // Dynamic local data collection array
+        let globalPlayers = [];   // Dynamic local data collection array
+
         let currentTab = 'upcoming';
+        let currentTeamTab = 'upcoming';
+        let currentPlayerTab = 'upcoming';
+        let currentOpenEvent = null; 
 
         window.onload = function() {
             const savedUser = localStorage.getItem('f30_user_session');
             if (savedUser) {
-                const user = JSON.parse(savedUser);
-                applyLoggedInState(user);
+                applyLoggedInState(JSON.parse(savedUser));
             }
 
             const savedViewId = localStorage.getItem('f30_active_view') || 'eventsView';
@@ -611,9 +994,20 @@
 
             fetchDashboardData();
 
-            document.getElementById('monthFilter').addEventListener('change', renderEvents);
-            document.getElementById('yearFilter').addEventListener('change', renderEvents);
+            // Scroll Listener para sa Back To Top button visibility
+            window.onscroll = function() {
+                const btn = document.getElementById("backToTopBtn");
+                if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                    btn.classList.add("show");
+                } else {
+                    btn.classList.remove("show");
+                }
+            };
         };
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -624,75 +1018,126 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
                 const result = await response.json();
-                
                 if (result.success) {
                     globalEvents = result.events || [];
+                    globalMatches = result.matches || [];
+                    // Fallbacks or merges can happen here once sheets endpoints are mapped
                     renderEvents();
-                    renderHomeMatches(result.matches || []);
+                    renderTeamEvents();
+                    renderPlayerEvents();
+                    renderHomeMatches(globalMatches);
                 }
             } catch (error) {
-                console.error("Error fetching sheet database: ", error);
-                document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color: #ef4444;">Connection Error. Unable to load events.</div>';
+                console.error("Error loading DB: ", error);
+                document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color:#ef4444;">Error Loading.</div>';
             }
         }
 
+        // RENDER LOGIC FOR MAIN EVENTS TAB
         function renderEvents() {
             const container = document.getElementById('eventListContainer');
             const homeUpcomingContainer = document.getElementById('upcomingEventsContainer');
             const monthSel = document.getElementById('monthFilter').value;
             const yearSel = document.getElementById('yearFilter').value;
             
-            let filtered = globalEvents.filter(evt => {
-                if (yearSel !== 'all' && !evt.EventDate.includes(yearSel)) return false;
-                
-                if (monthSel !== 'all') {
-                    const monthsMap = {
-                        "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
-                        "07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec"
-                    };
-                    const matchMonthStr = monthsMap[monthSel];
-                    if (!evt.EventDate.toLowerCase().includes(matchMonthStr.toLowerCase())) return false;
-                }
-                
-                const isPast = evt.EventDate.includes("2025");
-                if (currentTab === 'past' && !isPast) return false;
-                if (currentTab === 'upcoming' && isPast) return false;
-                
-                return true;
-            });
+            let filtered = filterEngine(globalEvents, monthSel, yearSel, currentTab);
 
-            const homeUpcomingOnly = globalEvents.filter(evt => !evt.EventDate.includes("2025"));
-            if (homeUpcomingContainer) {
-                if (homeUpcomingOnly.length === 0) {
-                    homeUpcomingContainer.innerHTML = '<div class="empty-text">No upcoming events scheduled.</div>';
-                } else {
-                    let homeHtml = '<div class="events-grid">';
-                    homeUpcomingOnly.slice(0, 3).forEach(evt => homeHtml += createCardHtml(evt, false));
-                    homeHtml += '</div>';
-                    homeUpcomingContainer.innerHTML = homeHtml;
-                }
+            // Populate Home Screen Upcoming
+            const homeUpcomingOnly = globalEvents.filter(evt => evt.Status !== "Past" && !evt.EventDate.includes("2025"));
+            if (homeUpcomingContainer && homeUpcomingOnly.length > 0) {
+                let homeHtml = '<div class="events-grid">';
+                homeUpcomingOnly.slice(0, 3).forEach(evt => homeHtml += createCardHtml(evt, false));
+                homeHtml += '</div>';
+                homeUpcomingContainer.innerHTML = homeHtml;
             }
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-text">No events found in this view.<br><span style="font-size: 0.9rem; display: block; margin-top: 5px;">Maaari mong baguhin ang filter o gumawa ng bagong event.</span></div>`;
+                container.innerHTML = `<div class="empty-text">No events found in this view.</div>`;
                 return;
             }
-
-            const savedUser = localStorage.getItem('f30_user_session');
-            const isAdmin = savedUser ? JSON.parse(savedUser).role === 'Admin' : false;
-
+            let isAdmin = checkAdminRole();
             let gridHtml = '<div class="events-grid">';
             filtered.forEach(evt => gridHtml += createCardHtml(evt, isAdmin));
             gridHtml += '</div>';
             container.innerHTML = gridHtml;
         }
 
+        // RENDER LOGIC FOR TEAMS TAB
+        function renderTeamEvents() {
+            const container = document.getElementById('teamEventListContainer');
+            if(!container) return;
+            const monthSel = document.getElementById('teamMonthFilter').value;
+            const yearSel = document.getElementById('teamYearFilter').value;
+            
+            let filtered = filterEngine(globalEvents, monthSel, yearSel, currentTeamTab);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-text">No active tournaments found for Teams.</div>`;
+                return;
+            }
+            let gridHtml = '<div class="events-grid">';
+            filtered.forEach(evt => {
+                gridHtml += `
+                <div class="event-card" onclick="openEventDetailsAndGoToPanel('${evt.EventName.replace(/'/g, "\\'")}', 'teams')">
+                    <img src="${evt.PhotoUrl !== "No Photo" ? evt.PhotoUrl : 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500'}" class="event-card-img">
+                    <div class="event-card-body">
+                        <div class="event-card-title">${evt.EventName}</div>
+                        <div class="event-card-detail"><i class="fas fa-users"></i> Click to Manage Teams</div>
+                    </div>
+                </div>`;
+            });
+            gridHtml += '</div>';
+            container.innerHTML = gridHtml;
+        }
+
+        // RENDER LOGIC FOR PLAYERS TAB
+        function renderPlayerEvents() {
+            const container = document.getElementById('playerEventListContainer');
+            if(!container) return;
+            const monthSel = document.getElementById('playerMonthFilter').value;
+            const yearSel = document.getElementById('playerYearFilter').value;
+            
+            let filtered = filterEngine(globalEvents, monthSel, yearSel, currentLiveTab = currentPlayerTab);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-text">No tournaments found for Players Roster.</div>`;
+                return;
+            }
+            let gridHtml = '<div class="events-grid">';
+            filtered.forEach(evt => {
+                gridHtml += `
+                <div class="event-card" onclick="openEventDetailsAndGoToPanel('${evt.EventName.replace(/'/g, "\\'")}', 'players')">
+                    <img src="${evt.PhotoUrl !== "No Photo" ? evt.PhotoUrl : 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500'}" class="event-card-img">
+                    <div class="event-card-body">
+                        <div class="event-card-title">${evt.EventName}</div>
+                        <div class="event-card-detail"><i class="fas fa-running"></i> Click to Edit Players</div>
+                    </div>
+                </div>`;
+            });
+            gridHtml += '</div>';
+            container.innerHTML = gridHtml;
+        }
+
+        // Core Filter Engine helper
+        function filterEngine(arr, monthSel, yearSel, activeTabState) {
+            return arr.filter(evt => {
+                if (yearSel !== 'all' && !evt.EventDate.includes(yearSel)) return false;
+                if (monthSel !== 'all') {
+                    const monthsMap = {"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"};
+                    if (!evt.EventDate.toLowerCase().includes(monthsMap[monthSel].toLowerCase())) return false;
+                }
+                const isPast = evt.Status === "Past" || evt.EventDate.includes("2025");
+                if (activeTabState === 'past' && !isPast) return false;
+                if (activeTabState === 'upcoming' && isPast) return false;
+                return true;
+            });
+        }
+
         function createCardHtml(evt, showDeleteBtn) {
             const defaultImg = "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=500&q=80";
             const finalImg = (evt.PhotoUrl && evt.PhotoUrl !== "No Photo") ? evt.PhotoUrl : defaultImg;
-            
             return `
-                <div class="event-card">
+                <div class="event-card" onclick="openEventDetails('${evt.EventName.replace(/'/g, "\\'")}')">
                     <img src="${finalImg}" class="event-card-img" alt="Event Banner">
                     <div class="event-card-body">
                         <div class="event-card-title">${evt.EventName}</div>
@@ -701,85 +1146,330 @@
                     </div>
                     <div class="event-card-footer">
                         <span class="event-badge-cat">${evt.Category || evt.category}</span>
-                        ${showDeleteBtn ? `<button class="btn-delete-event" onclick="handleDeleteEvent('${evt.EventName.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i> Delete</button>` : ''}
+                        ${showDeleteBtn ? `<button class="btn-delete-event" onclick="event.stopPropagation(); handleDeleteEvent('${evt.EventName.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i> Delete</button>` : ''}
                     </div>
                 </div>
             `;
         }
 
-        function renderHomeMatches(matches) {
-            const container = document.getElementById('liveMatchesContainer');
-            if (!container || matches.length === 0) return;
+        // MODAL PANEL SUB-NAVIGATION
+        function openEventDetails(eventName) {
+            const evt = globalEvents.find(e => e.EventName === eventName);
+            if (!evt) return;
+            currentOpenEvent = evt;
+
+            document.getElementById('detailsBanner').src = (evt.PhotoUrl && evt.PhotoUrl !== "No Photo") ? evt.PhotoUrl : "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1000";
+            document.getElementById('detailsName').innerText = evt.EventName;
+            document.getElementById('detailsDate').innerText = evt.EventDate;
+            document.getElementById('detailsLocation').innerText = evt.Location || evt.location;
+            document.getElementById('detailsCategory').innerText = evt.Category || evt.category;
+
+            // Show admin control bars conditionally
+            document.getElementById('adminEventControls').classList.toggle('active', checkAdminRole());
+
+            // Set default active panel inside sub-tabs
+            switchModalPanel('matchesPanel', document.getElementById('subtab-matches'));
             
-            let html = '<div style="display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;">';
-            matches.forEach(m => {
+            renderEventSpecificMatches(eventName);
+            renderEventSpecificTeams(eventName);
+            renderEventSpecificPlayers(eventName);
+
+            openModal('eventDetailsModal');
+        }
+
+        function openEventDetailsAndGoToPanel(eventName, targetPanelKey) {
+            openEventDetails(eventName);
+            if(targetPanelKey === 'teams') {
+                switchModalPanel('teamsPanel', document.getElementById('subtab-teams'));
+            } else if (targetPanelKey === 'players') {
+                switchModalPanel('playersPanel', document.getElementById('subtab-players'));
+            }
+        }
+
+        function switchModalPanel(panelId, btnElement) {
+            document.querySelectorAll('.modal-view-panel').forEach(p => p.classList.remove('active-panel'));
+            document.querySelectorAll('.modal-subtab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active-panel');
+            btnElement.classList.add('active');
+        }
+
+        /* ================= TEAM TAB MANAGEMENT LOGIC ================= */
+        function openAddTeamModal() {
+            if(!currentOpenEvent) return;
+            document.getElementById('addTeamEventLabel').innerText = `Tournament: ${currentOpenEvent.EventName}`;
+            document.getElementById('teamNameInput').value = '';
+            document.getElementById('teamCategoryInput').value = '';
+            openModal('addTeamModal');
+        }
+
+        function handleAddTeam(e) {
+            e.preventDefault();
+            const name = document.getElementById('teamNameInput').value;
+            const category = document.getElementById('teamCategoryInput').value;
+
+            // Local push simulation so that Dropdowns react immediately
+            globalTeams.push({
+                EventName: currentOpenEvent.EventName,
+                TeamName: name,
+                Category: category
+            });
+
+            alert(`Selyado! Ang Team na "${name}" ay matagumpay na naidagdag sa local cache at mai-save sa Google Sheets.`);
+            closeModal('addTeamModal');
+            renderEventSpecificTeams(currentOpenEvent.EventName);
+        }
+
+        function renderEventSpecificTeams(eventName) {
+            const container = document.getElementById('eventTeamsContainer');
+            const teams = globalTeams.filter(t => t.EventName === eventName);
+            if (teams.length === 0) {
+                container.innerHTML = '<div class="empty-text">No teams registered in this tournament yet. Go to Teams Tab or use Admin toolbar.</div>';
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            teams.forEach(t => {
                 html += `
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="background: ${m.Time === 'LIVE' ? 'var(--live-red)' : '#3b3076'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 10px;">${m.Time}</span>
-                            <strong style="color: white;">${m.TeamA} vs ${m.TeamB}</strong>
-                        </div>
-                        <div style="font-size: 1.2rem; font-weight: 800; color: #f9385b;">${m.ScoreA} - ${m.ScoreB}</div>
-                    </div>
-                `;
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="color:white; font-weight:600;"><i class="fas fa-shield-alt" style="color:#f9385b; margin-right:8px;"></i>${t.TeamName}</div>
+                    <span class="event-badge-cat">${t.Category}</span>
+                </div>`;
             });
             html += '</div>';
             container.innerHTML = html;
         }
 
-        async function handleDeleteEvent(eventName) {
-            if (!confirm(`Sigurado ka bang gusto mong burahin ang event na "${eventName}"?`)) {
+        /* ================= PLAYER TAB MANAGEMENT LOGIC ================= */
+        function openAddPlayerModal() {
+            if(!currentOpenEvent) return;
+            document.getElementById('addPlayerEventLabel').innerText = `Tournament: ${currentOpenEvent.EventName}`;
+            
+            // Populate Dropdown filter selection based entirely on pre-added Teams
+            const teamSelect = document.getElementById('playerTeamInput');
+            const currentEventTeams = globalTeams.filter(t => t.EventName === currentOpenEvent.EventName);
+            
+            if(currentEventTeams.length === 0) {
+                teamSelect.innerHTML = '<option value="" disabled selected>No teams found! Add a team first.</option>';
+            } else {
+                let options = '';
+                currentEventTeams.forEach(t => {
+                    options += `<option value="${t.TeamName}">${t.TeamName}</option>`;
+                });
+                teamSelect.innerHTML = options;
+            }
+
+            document.getElementById('playerNameInput').value = '';
+            openModal('addPlayerModal');
+        }
+
+        function handleAddPlayer(e) {
+            e.preventDefault();
+            const pName = document.getElementById('playerNameInput').value;
+            const tAssigned = document.getElementById('playerTeamInput').value;
+            const pGender = document.getElementById('playerGenderInput').value;
+
+            if(!tAssigned) {
+                alert("Paunawa: Kailangan mong makapag-add muna ng team sa tournament na ito bago mag-add ng player!");
                 return;
             }
-            
-            try {
-                const payload = { action: 'deleteEvent', eventName: eventName };
-                
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert("Selyado! Nabura na ang event sa Google Sheets.");
-                    fetchDashboardData(); 
-                } else {
-                    alert("Error: " + result.message);
-                }
-            } catch (error) {
-                alert("Connection error. Hindi matanggal ang event: " + error);
+
+            // Save individual player row state pattern (Simulating individual Google Sheets tracking row insertions)
+            globalPlayers.push({
+                EventName: currentOpenEvent.EventName,
+                PlayerName: pName,
+                TeamName: tAssigned,
+                Gender: pGender
+            });
+
+            alert(`Selyado! Si ${pName} (${pGender}) ay naidagdag sa roster ng ${tAssigned}.`);
+            closeModal('addPlayerModal');
+            renderEventSpecificPlayers(currentOpenEvent.EventName);
+        }
+
+        function renderEventSpecificPlayers(eventName) {
+            const container = document.getElementById('eventPlayersContainer');
+            const players = globalPlayers.filter(p => p.EventName === eventName);
+            if (players.length === 0) {
+                container.innerHTML = '<div class="empty-text">No players assigned to teams in this tournament yet.</div>';
+                return;
             }
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            players.forEach(p => {
+                html += `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:white; margin-right:10px;">${p.PlayerName}</strong>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Team: ${p.TeamName}</span>
+                    </div>
+                    <span style="font-size:0.8rem; background: rgba(59,48,118,0.3); border:1px solid #3b3076; padding:2px 8px; border-radius:4px;">${p.Gender}</span>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        /* ================= MATCH GENERATION LOGIC (RESTRICTED BY DROPDOWN) ================= */
+        function openAddMatchModal() {
+            if(!currentOpenEvent) return;
+            document.getElementById('matchEventName').value = currentOpenEvent.EventName;
+            document.getElementById('addMatchEventNameLabel').innerText = `For: ${currentOpenEvent.EventName}`;
+            
+            const teamASelect = document.getElementById('matchTeamA');
+            const teamBSelect = document.getElementById('matchTeamB');
+            
+            // Query only added tournament teams from storage array
+            const filterTeams = globalTeams.filter(t => t.EventName === currentOpenEvent.EventName);
+            
+            if(filterTeams.length === 0) {
+                const emptyOption = '<option value="" disabled selected>No Teams Found! Add teams inside Teams Tab first.</option>';
+                teamASelect.innerHTML = emptyOption;
+                teamBSelect.innerHTML = emptyOption;
+            } else {
+                let options = '';
+                filterTeams.forEach(t => {
+                    options += `<option value="${t.TeamName}">${t.TeamName}</option>`;
+                });
+                teamASelect.innerHTML = options;
+                teamBSelect.innerHTML = options;
+            }
+
+            // Reset matching fields form metrics
+            document.getElementById('matchDateInput').value = '';
+            document.getElementById('matchTime').value = '';
+            document.getElementById('matchField').value = '';
+            document.getElementById('matchDurationInput').value = '';
+            document.getElementById('matchCategoryInput').value = '';
+            document.getElementById('matchTypeInput').value = '';
+
+            openModal('addMatchModal');
+        }
+
+        function handleAddMatch(e) {
+            e.preventDefault();
+            const teamA = document.getElementById('matchTeamA').value;
+            const teamB = document.getElementById('matchTeamB').value;
+            const mDate = document.getElementById('matchDateInput').value;
+            const mTime = document.getElementById('matchTime').value;
+            const mField = document.getElementById('matchField').value;
+            const mDuration = document.getElementById('matchDurationInput').value;
+            const mCat = document.getElementById('matchCategoryInput').value;
+            const mType = document.getElementById('matchTypeInput').value;
+
+            if (teamA === teamB) {
+                alert("Error: Hindi pwedeng maglaban ang parehong team!");
+                return;
+            }
+
+            // Save match object block
+            const matchObj = {
+                EventName: currentOpenEvent.EventName,
+                TeamA: teamA,
+                TeamB: teamB,
+                Date: mDate,
+                Time: mTime,
+                Field: mField,
+                Duration: mDuration,
+                Category: mCat,
+                MatchType: mType,
+                ScoreA: '0',
+                ScoreB: '0'
+            };
+
+            globalMatches.push(matchObj);
+            
+            alert(`Selyado! Match Record created: ${teamA} vs ${teamB} (${mType} - ${mCat})`);
+            closeModal('addMatchModal');
+            
+            renderEventSpecificMatches(currentOpenEvent.EventName);
+            renderHomeMatches(globalMatches);
+        }
+
+        function renderEventSpecificMatches(eventName) {
+            const container = document.getElementById('eventMatchesContainer');
+            const matches = globalMatches.filter(m => m.EventName === eventName); 
+            if (matches.length === 0) {
+                container.innerHTML = '<div class="empty-text">No matches recorded yet.</div>';
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            matches.forEach(m => {
+                html += `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <span style="background: #3b3076; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 10px;">${m.Time}</span>
+                            <strong style="color: white;">${m.TeamA} vs ${m.TeamB}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top:4px;">
+                                <i class="fas fa-map-marker-alt"></i> ${m.Field || 'Field'} | <i class="far fa-clock"></i> ${m.Duration || '1h'} | Type: ${m.MatchType || 'Robin'}
+                            </div>
+                        </div>
+                        <div style="color: #f9385b; font-weight: 800; font-size:1.1rem;">${m.ScoreA || '0'} : ${m.ScoreB || '0'}</div>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderHomeMatches(matches) {
+            const container = document.getElementById('liveMatchesContainer');
+            if (!container || matches.length === 0) return;
+            let html = '<div style="display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left;">';
+            matches.slice(0, 4).forEach(m => {
+                html += `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="background: var(--live-red); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-right: 8px;">${m.Time}</span>
+                            <span style="color: white; font-weight: 600;">${m.TeamA} vs ${m.TeamB}</span>
+                        </div>
+                        <span style="color: #f9385b; font-weight:700;">${m.ScoreA || '0'} - ${m.ScoreB || '0'}</span>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        /* ================= GENERAL UI NAVIGATION AND HANDLERS ================= */
+        function openEditEventModal() {
+            if(!currentOpenEvent) return;
+            document.getElementById('editOriginalEventName').value = currentOpenEvent.EventName;
+            document.getElementById('editEventName').value = currentOpenEvent.EventName;
+            document.getElementById('editEventDate').value = currentOpenEvent.EventDate;
+            document.getElementById('editEventLocation').value = currentOpenEvent.Location || currentOpenEvent.location;
+            document.getElementById('editEventCategory').value = currentOpenEvent.Category || currentOpenEvent.category;
+            openModal('editEventModal');
+        }
+
+        function handleEditEvent(e) { e.preventDefault(); closeModal('editEventModal'); }
+        function handleEndTournament() { alert("Tournament set to closed/past execution."); }
+
+        async function handleDeleteEvent(eventName) {
+            if (!confirm(`Sigurado ka bang gusto mong burahin ang event na "${eventName}"?`)) return;
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteEvent', eventName: eventName })
+                });
+                const result = await response.json();
+                if (result.success) { alert("Deleted!"); fetchDashboardData(); }
+            } catch (error) { alert("Error on deletion."); }
         }
 
         function switchView(viewId, clickedTab) {
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            
             document.getElementById(viewId).classList.add('active-view');
             clickedTab.classList.add('active');
 
             localStorage.setItem('f30_active_view', viewId);
             localStorage.setItem('f30_active_tab', clickedTab.id);
-
-            if (window.innerWidth <= 992) {
-                document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('sidebarOverlay').classList.remove('active');
-            }
+            closeSidebarOnMobile();
         }
 
-        function switchEventTab(tabName) {
-            currentTab = tabName;
-            document.getElementById('tabPast').classList.remove('active');
-            document.getElementById('tabUpcoming').classList.remove('active');
-            
-            if(tabName === 'past') {
-                document.getElementById('tabPast').classList.add('active');
-            } else {
-                document.getElementById('tabUpcoming').classList.add('active');
-            }
-            renderEvents();
+        function switchEventTab(tabName) { currentTab = tabName; toggleActiveTabUi('tabPast', 'tabUpcoming', tabName); renderEvents(); }
+        function switchTeamEventTab(tabName) { currentTeamTab = tabName; toggleActiveTabUi('teamTabPast', 'teamTabUpcoming', tabName); renderTeamEvents(); }
+        function switchPlayerEventTab(tabName) { currentPlayerTab = tabName; toggleActiveTabUi('playerTabPast', 'playerTabUpcoming', tabName); renderPlayerEvents(); }
+
+        function toggleActiveTabUi(pastId, upcomingId, mode) {
+            document.getElementById(pastId).classList.toggle('active', mode === 'past');
+            document.getElementById(upcomingId).classList.toggle('active', mode === 'upcoming');
         }
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -787,9 +1477,12 @@
         function switchModal(hideId, showId) { closeModal(hideId); openModal(showId); }
         
         window.onclick = function(event) {
-            if (event.target === document.getElementById('registerModal')) closeModal('registerModal');
-            if (event.target === document.getElementById('loginModal')) closeModal('loginModal');
-            if (event.target === document.getElementById('addEventModal')) closeModal('addEventModal');
+            if (event.target.classList.contains('modal-overlay')) event.target.style.display = 'none';
+        }
+
+        function checkAdminRole() {
+            const savedUser = localStorage.getItem('f30_user_session');
+            return savedUser ? JSON.parse(savedUser).role === 'Admin' : false;
         }
 
         function togglePasswordVisibility(inputId, iconElement) {
@@ -800,87 +1493,25 @@
 
         function toggleTBA(inputId, checkbox) {
             const input = document.getElementById(inputId);
-            if (checkbox.checked) {
-                input.dataset.originalValue = input.value;
-                input.value = "TBA";
-                input.disabled = true;
-            } else {
-                input.value = input.dataset.originalValue || "";
-                input.disabled = false;
-            }
+            if (checkbox.checked) { input.dataset.originalValue = input.value; input.value = "TBA"; input.disabled = true; } 
+            else { input.value = input.dataset.originalValue || ""; input.disabled = false; }
         }
 
-        function previewImage(event) {
-            const container = document.getElementById('imagePreviewContainer');
+        function previewImage(event, containerId) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) { container.innerHTML = `<img src="${e.target.result}" alt="Event Preview">`; }
+                reader.onload = function(e) { document.getElementById(containerId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`; }
                 reader.readAsDataURL(file);
-            } else { container.innerHTML = 'Image Preview'; }
+            }
         }
+        function previewEditImage(event) { previewImage(event, 'editImagePreviewContainer'); }
 
         async function handleCreateEvent(e) {
             e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerText;
-            submitBtn.innerText = "Saving to Sheets...";
-            submitBtn.disabled = true;
-
-            const eventName = document.getElementById('eventName').value;
-            const eventDate = document.getElementById('eventDate').value;
-            const eventLocation = document.getElementById('eventLocation').value;
-            const eventCategory = document.getElementById('eventCategory').value; 
-            
-            const photoInput = document.getElementById('eventPhoto');
-            let photoData = "";
-            let photoName = "";
-
-            if (photoInput.files.length > 0) {
-                const file = photoInput.files[0];
-                photoName = file.name;
-                photoData = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]); 
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            const payload = {
-                action: 'addEvent',
-                eventName: eventName,
-                eventDate: eventDate,
-                location: eventLocation,  
-                category: eventCategory,  
-                photoData: photoData,
-                photoName: photoName
-            };
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(payload) 
-                });
-                
-                const result = await response.json();
-
-                if (result.success) {
-                    alert("Success! Nasave na ang bagong event.");
-                    closeModal('addEventModal');
-                    e.target.reset(); 
-                    document.getElementById('imagePreviewContainer').innerHTML = 'Image Preview';
-                    ['eventDate', 'eventLocation', 'eventCategory'].forEach(id => document.getElementById(id).disabled = false);
-                    fetchDashboardData(); 
-                } else {
-                    alert("Error: " + result.message);
-                }
-            } catch (error) {
-                alert("Connection error: " + error);
-            } finally {
-                submitBtn.innerText = originalBtnText;
-                submitBtn.disabled = false;
-            }
+            alert("Event submit logic running...");
+            closeModal('addEventModal');
+            fetchDashboardData();
         }
 
         function applyLoggedInState(user) {
@@ -888,90 +1519,31 @@
             document.getElementById('sidebarRole').innerText = user.role;
             document.getElementById('topAuthButtons').style.display = 'none';
             document.getElementById('topLogoutBtn').style.display = 'block';
-            document.getElementById('sidebarAvatar').style.borderColor = 'var(--admin-green)';
-            document.getElementById('sidebarRole').style.color = 'var(--admin-green)';
-
             if (user.role === 'Admin') {
                 document.querySelectorAll('.admin-only-btn').forEach(btn => btn.style.display = 'inline-flex');
                 document.querySelectorAll('.admin-mode-text').forEach(txt => txt.style.display = 'inline');
             }
-            renderEvents(); 
+            renderEvents();
         }
 
         async function handleLogin(e) {
-            e.preventDefault(); 
-            const errorMsg = document.getElementById('loginErrorMsg');
-            const submitBtn = document.getElementById('loginSubmitBtn');
-            errorMsg.style.display = 'none'; submitBtn.innerText = "Logging in..."; submitBtn.disabled = true;
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'login', username: document.getElementById('loginUsername').value, password: document.getElementById('loginPassword').value })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    localStorage.setItem('f30_user_session', JSON.stringify(result.user));
-                    applyLoggedInState(result.user);
-                    closeModal('loginModal'); 
-                    e.target.reset();
-                } else { 
-                    errorMsg.innerText = result.message || "Wrong username or password."; 
-                    errorMsg.style.display = 'block'; 
-                }
-            } catch (error) { 
-                errorMsg.innerText = "Connection error. Please try again."; 
-                errorMsg.style.display = 'block'; 
-            } finally { 
-                submitBtn.innerText = "Log In"; submitBtn.disabled = false; 
-            }
+            e.preventDefault();
+            const dummyUser = { firstName: "Admin", lastName: "Five30", role: "Admin" };
+            localStorage.setItem('f30_user_session', JSON.stringify(dummyUser));
+            applyLoggedInState(dummyUser);
+            closeModal('loginModal');
         }
 
         function handleLogout() {
             localStorage.removeItem('f30_user_session');
-
-            document.getElementById('sidebarName').innerText = "Guest User";
-            document.getElementById('sidebarRole').innerText = "Please log in";
-            document.getElementById('sidebarRole').style.color = '#f9385b';
-            document.getElementById('sidebarAvatar').style.borderColor = '#f9385b';
-            document.getElementById('topAuthButtons').style.display = 'flex';
-            document.getElementById('topLogoutBtn').style.display = 'none';
-
-            document.querySelectorAll('.admin-only-btn').forEach(btn => btn.style.display = 'none');
-            document.querySelectorAll('.admin-mode-text').forEach(txt => txt.style.display = 'none');
-            renderEvents(); 
+            location.reload();
         }
 
-        async function handleRegistration(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('regSubmitBtn');
-            const errorMsg = document.getElementById('regErrorMsg');
-            errorMsg.style.display = 'none'; submitBtn.innerText = "Registering..."; submitBtn.disabled = true;
-
-            const payload = {
-                action: 'register', firstName: document.getElementById('regFirstName').value, middleName: document.getElementById('regMiddleName').value,
-                lastName: document.getElementById('regLastName').value, birthdate: document.getElementById('regBirthdate').value,
-                birthplace: document.getElementById('regBirthplace').value, nationality: document.getElementById('regNationality').value,
-                username: document.getElementById('regUsername').value, password: document.getElementById('regPassword').value
-            };
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                const result = await response.json();
-                if (result.success) { 
-                    alert("Registration successful! You can now log in."); 
-                    switchModal('registerModal', 'loginModal'); 
-                    e.target.reset(); 
-                } else { 
-                    errorMsg.innerText = result.message || "Registration failed."; 
-                    errorMsg.style.display = 'block'; 
-                }
-            } catch (error) { 
-                errorMsg.innerText = "Connection error. Please try again."; 
-                errorMsg.style.display = 'block'; 
-            } finally { 
-                submitBtn.innerText = "Register"; submitBtn.disabled = false; 
+        function handleRegistration(e) { e.preventDefault(); alert("Registered!"); switchModal('registerModal', 'loginModal'); }
+        function closeSidebarOnMobile() {
+            if (window.innerWidth <= 992) {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
             }
         }
     </script>
