@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,7 +54,6 @@
             font-size: 1.2rem;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(249, 56, 91, 0.4);
-            display: none; 
             z-index: 1000;
             transition: transform 0.3s;
             display: flex;
@@ -217,7 +216,7 @@
         .btn-logout-top:hover { background: var(--live-red); color: white; }
 
         /* NAV MENU */
-        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; }
         .nav-link { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; cursor: pointer;}
         .nav-link i { font-size: 1.1rem; width: 20px; text-align: center; }
         .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-light); }
@@ -307,13 +306,11 @@
         .accordion-item.active .accordion-header i { transform: rotate(180deg); transition: transform 0.3s; }
         .accordion-header i { transition: transform 0.3s; color: var(--text-muted); }
 
-        /* Clean Player list style inside player accordion (No stats/table border) */
+        /* Clean Player list style inside player accordion */
         .clean-player-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; padding: 10px 0; }
         .clean-player-item { background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 6px; font-weight: 600; border-left: 3px solid #f9385b; }
 
-        /* =========================================
-           MODAL STYLES
-           ========================================= */
+        /* MODAL STYLES */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 11, 20, 0.85); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; overflow-y: auto;}
         .modal-container { background: var(--bg-main); width: 100%; max-width: 550px; border-radius: 16px; padding: 30px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin: auto;}
         .modal-container.large { max-width: 800px; }
@@ -444,7 +441,13 @@
             <li><a class="nav-link active" id="nav-events" onclick="switchView('eventsView', this)"><i class="far fa-calendar-alt"></i> Events</a></li>
             <li><a class="nav-link" id="nav-teams" onclick="switchView('teamsView', this)"><i class="fas fa-users"></i> Teams</a></li>
             <li><a class="nav-link" id="nav-players" onclick="switchView('playersView', this)"><i class="fas fa-running"></i> Players</a></li>
+            <li><a class="nav-link" id="nav-leaderboards" onclick="switchView('leaderboardsView', this)"><i class="fas fa-chart-bar"></i> Leaderboards</a></li>
+            <li style="opacity: 0.5; cursor: not-allowed;"><a class="nav-link" style="pointer-events: none;"><i class="fas fa-gamepad"></i> Badge Match <span style="font-size:0.6rem; background:var(--warning-orange); color:#000; padding:2px 4px; border-radius:4px; font-weight:700;">SOON</span></a></li>
         </ul>
+
+        <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <a class="nav-link" id="nav-askadmin" onclick="alert('May katanungan ba? I-message ang aming admin team sa: admin@five30.com o sa ating Official Facebook Page!')"><i class="fas fa-comment-dots"></i> Ask Admin</a>
+        </div>
     </aside>
 
     <main class="main-content">
@@ -485,10 +488,10 @@
 
             <section>
                 <div class="section-header-row">
-                    <h3 class="section-header">MATCHES</h3>
+                    <h3 class="section-header">UPCOMING MATCHES</h3>
                 </div>
                 <div class="empty-state-box" id="liveMatchesContainer">
-                    <div class="empty-text">No matches added yet.</div>
+                    <div class="empty-text">No upcoming matches added yet.</div>
                 </div>
             </section>
 
@@ -602,7 +605,7 @@
                 </div>
             </div>
             <div class="empty-state-box" id="teamEventListContainer">
-                <div class="empty-text">Pumili ng tournament para makita o mag-add ng mga kasaling teams...</div>
+                <div class="empty-text">Select a tournament to view or add participating teams...</div>
             </div>
         </div>
 
@@ -652,14 +655,21 @@
                 </div>
             </div>
             <div class="empty-state-box" id="playerEventListContainer">
-                <div class="empty-text">Pumili ng tournament para mag-manage ng roster ng mga players...</div>
+                <div class="empty-text">Select a tournament to manage the player roster...</div>
+            </div>
+        </div>
+
+        <div id="leaderboardsView" class="view-section">
+            <h2 class="events-page-header">Overall Rankings & Leaderboards</h2>
+            <div class="empty-state-box">
+                <div class="empty-text">Leaderboard rankings will dynamically sync based on statistics gathered from active matches.</div>
             </div>
         </div>
 
         <div id="tournamentDetailView" class="view-section">
             <div class="section-header-row" style="margin-bottom: 20px;">
                 <button class="btn-edit" onclick="goBackToReferrer()" style="padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                    <i class="fas fa-arrow-left"></i> Bumalik sa Listahan
+                    <i class="fas fa-arrow-left"></i> Back to List
                 </button>
                 <span id="detailsStatusBadge" style="background: var(--brand-gradient); padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">Status</span>
             </div>
@@ -676,9 +686,9 @@
             </div>
 
             <div class="admin-action-bar" id="adminEventControls">
-                <button class="btn-action btn-add-match" onclick="openAddMatchModal()"><i class="fas fa-plus"></i> Add Match</button>
-                <button class="btn-action btn-add-team" onclick="openAddTeamModal()"><i class="fas fa-users"></i> Add Team</button>
-                <button class="btn-action btn-add-player" onclick="openAddPlayerModal()"><i class="fas fa-user-plus"></i> Add Player</button>
+                <button class="btn-action btn-add-match" id="btnAdminAddMatch" onclick="openAddMatchModal()"><i class="fas fa-plus"></i> Add Match</button>
+                <button class="btn-action btn-add-team" id="btnAdminAddTeam" onclick="openAddTeamModal()"><i class="fas fa-users"></i> Add Team</button>
+                <button class="btn-action btn-add-player" id="btnAdminAddPlayer" onclick="openAddPlayerModal()"><i class="fas fa-user-plus"></i> Add Player</button>
                 <button class="btn-action btn-edit" onclick="openEditEventModal()"><i class="fas fa-edit"></i> Edit Info</button>
                 <button class="btn-action btn-end" onclick="handleEndTournament()"><i class="fas fa-flag-checkered"></i> End Tournament</button>
             </div>
@@ -694,7 +704,7 @@
 
             <div class="dedicated-view-panel" id="teamsPanel">
                 <div class="matches-section">
-                    <div class="matches-header"><span>Team Standings Table</span></div>
+                    <div class="matches-header"><span>Team Standings Table (Divided by Division)</span></div>
                     <div id="eventTeamsContainer">
                         <div class="empty-text" style="padding: 20px 0;">No teams registered in this tournament yet.</div>
                     </div>
@@ -703,7 +713,7 @@
 
             <div class="dedicated-view-panel" id="playersPanel">
                 <div class="matches-section">
-                    <div class="matches-header"><span>Roster Accordion (Dropdown)</span></div>
+                    <div class="matches-header"><span>Roster Accordion (Dropdown per Team)</span></div>
                     <div class="matches-list" id="eventPlayersContainer">
                         <div class="empty-text" style="padding: 20px 0;">No players assigned to teams in this tournament yet.</div>
                     </div>
@@ -727,12 +737,35 @@
                 <div class="form-group">
                     <label class="form-label">Division / Category</label>
                     <div class="input-box">
-                        <input type="text" id="teamCategoryInput" placeholder="e.g., Mixed / Men's / Women's" required>
+                        <input type="text" id="teamCategoryInput" placeholder="e.g., Open / Women's / Mixed" required>
                     </div>
                 </div>
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
                     <button type="button" class="btn-cancel-modal" onclick="closeModal('addTeamModal')">Cancel</button>
                     <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editTeamModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('editTeamModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h2>Edit Team Details</h2>
+            </div>
+            <form id="editTeamForm" onsubmit="handleSaveEditTeam(event)">
+                <div class="form-group">
+                    <label class="form-label">Team Name</label>
+                    <div class="input-box"><input type="text" id="editTeamNameInput" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Division / Category</label>
+                    <div class="input-box"><input type="text" id="editTeamCategoryInput" required></div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('editTeamModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -753,14 +786,33 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Paste Player List (Isang pangalan bawat linya)</label>
+                    <label class="form-label">Paste Player List (One name per line)</label>
                     <div class="input-box">
-                        <textarea id="bulkPlayersInput" placeholder="Juan Dela Cruz&#10;Maria Clara&#10;Jose Rizal" required></textarea>
+                        <textarea id="bulkPlayersInput" placeholder="Juan Dela Cruz&#10;Maria Clara" required></textarea>
                     </div>
                 </div>
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
                     <button type="button" class="btn-cancel-modal" onclick="closeModal('addPlayerModal')">Cancel</button>
                     <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Players</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editPlayerModal">
+        <div class="modal-container">
+            <button class="btn-close" onclick="closeModal('editPlayerModal')"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <h2>Edit Player Name</h2>
+            </div>
+            <form id="editPlayerForm" onsubmit="handleSaveEditPlayer(event)">
+                <div class="form-group">
+                    <label class="form-label">Player Name</label>
+                    <div class="input-box"><input type="text" id="editPlayerNameInput" required></div>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal('editPlayerModal')">Cancel</button>
+                    <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -808,7 +860,7 @@
 
                 <div class="form-grid-3">
                     <div class="form-group">
-                        <label class="form-label">Duration (Time Setter)</label>
+                        <label class="form-label">Duration</label>
                         <div class="input-box"><input type="text" id="matchDuration" placeholder="e.g., 60 mins" required></div>
                     </div>
                     <div class="form-group">
@@ -817,7 +869,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Match Type</label>
-                        <div class="input-box"><input type="text" id="matchType" placeholder="e.g., Round Robin / Semis" required></div>
+                        <div class="input-box"><input type="text" id="matchType" placeholder="e.g., Round Robin" required></div>
                     </div>
                 </div>
 
@@ -877,7 +929,7 @@
             <form id="addEventForm" onsubmit="handleCreateEvent(event)">
                 <div class="form-group">
                     <label class="form-label">Event Name</label>
-                    <div class="input-box"><input type="text" id="eventName" placeholder="e.g., Sinong Single Jan 2026" required></div>
+                    <div class="input-box"><input type="text" id="eventName" placeholder="e.g., Summer Frisbee 2026" required></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Event Date</label>
@@ -965,7 +1017,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfOAyH8_OD_Jctcwu1qjmAksIoVCgqMqehyh3m6M55Q20NtQeeHOQE1D6UHoFV6eVH/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhR2SAdV6F06zkpk9EmMAg--sHSNjSKvQu1SkDTCM0W_vJS0wKVoGp5L2E27JjXMCM/exec"; 
 
         let globalEvents = [];
         let globalMatches = []; 
@@ -975,7 +1027,12 @@
         let currentTeamTab = 'upcoming';
         let currentPlayerTab = 'upcoming';
         let currentOpenEvent = null; 
-        let referrerView = 'eventsView'; // Tracker kung saan galing para sa Back Button
+        let referrerView = 'eventsView'; 
+
+        // Storage Trackers for entity editing
+        let editingTeamName = null;
+        let editingPlayerName = null;
+        let editingPlayerTeam = null;
 
         window.addEventListener('scroll', () => {
             const btn = document.getElementById('backToTopBtn');
@@ -992,7 +1049,6 @@
             const savedViewId = localStorage.getItem('f30_active_view') || 'eventsView';
             const savedTabId = localStorage.getItem('f30_active_tab') || 'nav-events';
             
-            // Siguraduhing hindi ma-stuck sa tournament sub-view tuwing magre-refresh
             let cleanViewId = savedViewId === 'tournamentDetailView' ? 'eventsView' : savedViewId;
             let cleanTabId = savedViewId === 'tournamentDetailView' ? 'nav-events' : savedTabId;
 
@@ -1014,6 +1070,9 @@
                 if (result.success) {
                     globalEvents = result.events || [];
                     globalMatches = result.matches || [];
+                    globalTeams = result.teams || [];
+                    globalPlayers = result.players || [];
+                    
                     renderEvents();
                     renderTeamEvents();
                     renderPlayerEvents();
@@ -1036,7 +1095,7 @@
             const homeUpcomingOnly = globalEvents.filter(evt => evt.Status !== "Past" && !evt.EventDate.includes("2025"));
             if (homeUpcomingContainer && homeUpcomingOnly.length > 0) {
                 let homeHtml = '<div class="events-grid">';
-                homeUpcomingOnly.slice(0, 3).forEach(evt => homeHtml += createCardHtml(evt, false));
+                homeUpcomingOnly.slice(0, 3).forEach(evt => homeHtml += createCardHtml(evt, false, 'homeView'));
                 homeHtml += '</div>';
                 homeUpcomingContainer.innerHTML = homeHtml;
             }
@@ -1047,7 +1106,7 @@
             }
             let isAdmin = checkAdminRole();
             let gridHtml = '<div class="events-grid">';
-            filtered.forEach(evt => gridHtml += createCardHtml(evt, isAdmin));
+            filtered.forEach(evt => gridHtml += createCardHtml(evt, isAdmin, 'eventsView'));
             gridHtml += '</div>';
             container.innerHTML = gridHtml;
         }
@@ -1120,11 +1179,11 @@
             });
         }
 
-        function createCardHtml(evt, showDeleteBtn) {
+        function createCardHtml(evt, showDeleteBtn, sourceId = 'eventsView') {
             const defaultImg = "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=500&q=80";
             const finalImg = (evt.PhotoUrl && evt.PhotoUrl !== "No Photo") ? evt.PhotoUrl : defaultImg;
             return `
-                <div class="event-card" onclick="openTournamentDetail('${evt.EventName.replace(/'/g, "\\'")}', 'eventsView')">
+                <div class="event-card" onclick="openTournamentDetail('${evt.EventName.replace(/'/g, "\\'")}', '${sourceId}')">
                     <img src="${finalImg}" class="event-card-img" alt="Event Banner">
                     <div class="event-card-body">
                         <div class="event-card-title">${evt.EventName}</div>
@@ -1139,14 +1198,12 @@
             `;
         }
 
-        // DEDICATED APPROACH ROUTER switching engine
         function openTournamentDetail(eventName, sourceViewId) {
             const evt = globalEvents.find(e => e.EventName === eventName);
             if (!evt) return;
             currentOpenEvent = evt;
-            referrerView = sourceViewId; // I-save kung saang panel galing
+            referrerView = sourceViewId; 
 
-            // Setup Header / Metadata info
             document.getElementById('detailsBanner').src = (evt.PhotoUrl && evt.PhotoUrl !== "No Photo") ? evt.PhotoUrl : "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1000";
             document.getElementById('detailsName').innerText = evt.EventName;
             document.getElementById('detailsDate').innerText = evt.EventDate;
@@ -1154,14 +1211,18 @@
             document.getElementById('detailsCategory').innerText = evt.Category || evt.category;
             document.getElementById('detailsStatusBadge').innerText = evt.Status || "Active";
 
-            // I-toggle ang visibility ng Admin bar
-            document.getElementById('adminEventControls').classList.toggle('active', checkAdminRole());
+            const isAdmin = checkAdminRole();
+            document.getElementById('adminEventControls').classList.toggle('active', isAdmin);
 
-            // Isara muna ang lahat ng sub-panels
+            if (isAdmin) {
+                document.getElementById('btnAdminAddMatch').style.display = (sourceViewId === 'eventsView' || sourceViewId === 'homeView') ? 'flex' : 'none';
+                document.getElementById('btnAdminAddTeam').style.display = (sourceViewId === 'teamsView') ? 'flex' : 'none';
+                document.getElementById('btnAdminAddPlayer').style.display = (sourceViewId === 'playersView') ? 'flex' : 'none';
+            }
+
             document.querySelectorAll('.dedicated-view-panel').forEach(p => p.classList.remove('active-panel'));
 
-            // CONTEXT ENGINE: Depende kung saan tab galing, iyon lang ang ipapakita natin!
-            if(sourceViewId === 'eventsView') {
+            if(sourceViewId === 'eventsView' || sourceViewId === 'homeView') {
                 document.getElementById('matchesPanel').classList.add('active-panel');
                 renderEventSpecificMatches(eventName);
             } else if (sourceViewId === 'teamsView') {
@@ -1172,11 +1233,9 @@
                 renderEventSpecificPlayers(eventName);
             }
 
-            // Lumipat sa aming bagong tournament dedicated view panel
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.getElementById('tournamentDetailView').classList.add('active-view');
             
-            // I-save sa cache ang state
             localStorage.setItem('f30_active_view', 'tournamentDetailView');
             scrollToTop();
         }
@@ -1184,85 +1243,142 @@
         function goBackToReferrer() {
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.getElementById(referrerView).classList.add('active-view');
+            
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            let tabIdMap = {
+                'homeView': 'nav-home',
+                'eventsView': 'nav-events',
+                'teamsView': 'nav-teams',
+                'playersView': 'nav-players',
+                'leaderboardsView': 'nav-leaderboards'
+            };
+            if(tabIdMap[referrerView]) {
+                document.getElementById(tabIdMap[referrerView]).classList.add('active');
+                localStorage.setItem('f30_active_tab', tabIdMap[referrerView]);
+            }
+
             localStorage.setItem('f30_active_view', referrerView);
         }
 
-        // ============================================
-        // RENDER LOGIC PARA SA TEAMS STANDING TAB
-        // ============================================
+        // SEPARATING DIVISIONS (TEAMS STANDINGS VIEW)
         function renderEventSpecificStandings(eventName) {
             const container = document.getElementById('eventTeamsContainer');
-            const evtTeams = globalTeams.filter(t => t.eventName === eventName);
+            const evtTeams = globalTeams.filter(t => (t.EventName || t.eventName || t["Event Name"]) === eventName);
             
             if(evtTeams.length === 0) {
                 container.innerHTML = '<div class="empty-text" style="padding: 20px 0;">No teams registered in this tournament yet.</div>';
                 return;
             }
 
-            let html = `
-            <table class="standings-table">
-                <thead>
-                    <tr>
-                        <th class="rank-col">#</th>
-                        <th>Team Name</th>
-                        <th>W</th>
-                        <th>L</th>
-                        <th>Pts</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-            
-            evtTeams.forEach((t, index) => {
-                html += `
-                    <tr>
-                        <td class="rank-col">${index + 1}</td>
-                        <td style="font-weight: 700;">${t.teamName} <br><span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${t.category}</span></td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                    </tr>
-                `;
+            // Grouping logic by Division / Category
+            let groupedDivisions = {};
+            evtTeams.forEach(t => {
+                let div = t.Category || t.category || "Mixed Division";
+                if(!groupedDivisions[div]) groupedDivisions[div] = [];
+                groupedDivisions[div].push(t);
             });
-            html += `</tbody></table>`;
+
+            let html = '';
+            let isAdmin = checkAdminRole();
+
+            for (let division in groupedDivisions) {
+                html += `<h3 style="margin: 25px 0 10px 0; color: #f9385b; font-size: 1.1rem; text-transform: uppercase;"><i class="fas fa-trophy"></i> ${division}</h3>`;
+                html += `
+                <table class="standings-table" style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th class="rank-col">#</th>
+                            <th>Team Name</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>Pts</th>
+                            ${isAdmin ? '<th style="text-align:center; width:110px;">Actions</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                
+                groupedDivisions[division].forEach((t, index) => {
+                    const displayTeamName = t.TeamName || t.teamName || t["Team Name"] || "Unknown Team";
+                    html += `
+                        <tr>
+                            <td class="rank-col">${index + 1}</td>
+                            <td style="font-weight: 700;">${displayTeamName}</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            ${isAdmin ? `
+                            <td style="text-align:center;">
+                                <button class="btn-edit" style="padding: 4px 8px; font-size:0.75rem; margin-right:5px;" onclick="openEditTeamModal('${displayTeamName.replace(/'/g, "\\'")}', '${division.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn-delete-event" style="padding: 4px 8px; font-size:0.75rem;" onclick="handleDeleteTeam('${displayTeamName.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                            </td>` : ''}
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+            }
             container.innerHTML = html;
         }
 
-        // ==========================================================
-        // RENDER LOGIC PARA SA PLAYERS ACCORDION (Walang Win/Loss columns)
-        // ==========================================================
+        // SEPARATING DIVISIONS (PLAYERS ROSTER ACCORDION VIEW)
         function renderEventSpecificPlayers(eventName) {
             const container = document.getElementById('eventPlayersContainer');
-            const evtTeams = globalTeams.filter(t => t.eventName === eventName);
+            const evtTeams = globalTeams.filter(t => (t.EventName || t.eventName || t["Event Name"]) === eventName);
             
             if(evtTeams.length === 0) {
                 container.innerHTML = '<div class="empty-text" style="padding: 20px 0;">No teams added here yet.</div>';
                 return;
             }
 
-            let html = '';
+            // Grouping teams by division
+            let groupedDivisions = {};
             evtTeams.forEach(t => {
-                const teamPlayers = globalPlayers.filter(p => p.teamName === t.teamName && p.eventName === eventName);
-                
-                html += `
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
-                        <span><i class="fas fa-users" style="color:#f9385b; margin-right:8px;"></i> ${t.teamName}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="accordion-content">`;
-                
-                if(teamPlayers.length === 0) {
-                    html += `<div style="padding: 15px 0; color: var(--text-muted); font-size: 0.9rem;">Wala pang naka-assign na player sa team na ito.</div>`;
-                } else {
-                    html += `<ul class="clean-player-list">`;
-                    teamPlayers.forEach(p => {
-                        html += `<li class="clean-player-item">${p.playerName}</li>`;
-                    });
-                    html += `</ul>`;
-                }
-                html += `</div></div>`;
+                let div = t.Category || t.category || "Mixed Division";
+                if(!groupedDivisions[div]) groupedDivisions[div] = [];
+                groupedDivisions[div].push(t);
             });
 
+            let html = '';
+            let isAdmin = checkAdminRole();
+
+            for (let division in groupedDivisions) {
+                html += `<h3 style="margin: 25px 0 10px 0; color: #f59e0b; font-size: 1rem; text-transform: uppercase;"><i class="fas fa-layer-group"></i> ${division}</h3>`;
+                
+                groupedDivisions[division].forEach(t => {
+                    const currentTeamName = t.TeamName || t.teamName || t["Team Name"] || "Unnamed Team";
+                    const teamPlayers = globalPlayers.filter(p => 
+                        (p.TeamName || p.teamName || p["Team Name"]) === currentTeamName && 
+                        (p.EventName || p.eventName || p["Event Name"]) === eventName
+                    );
+                    
+                    html += `
+                    <div class="accordion-item" style="margin-bottom: 8px;">
+                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                            <span><i class="fas fa-users" style="color:#f9385b; margin-right:8px;"></i> ${currentTeamName}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-content">`;
+                    
+                    if(teamPlayers.length === 0) {
+                        html += `<div style="padding: 15px 0; color: var(--text-muted); font-size: 0.9rem;">No players assigned to this team yet.</div>`;
+                    } else {
+                        html += `<ul class="clean-player-list">`;
+                        teamPlayers.forEach(p => {
+                            const currentObjPlayerName = p.PlayerName || p.playerName || p["Player Name"] || "Unknown";
+                            html += `
+                            <li class="clean-player-item" style="display:flex; justify-content:space-between; align-items:center;">
+                                <span>${currentObjPlayerName}</span>
+                                ${isAdmin ? `
+                                <div>
+                                    <i class="fas fa-edit" style="color:var(--text-muted); cursor:pointer; margin-right:12px;" onclick="event.stopPropagation(); openEditPlayerModal('${currentObjPlayerName.replace(/'/g, "\\'")}', '${currentTeamName.replace(/'/g, "\\'")}')"></i>
+                                    <i class="fas fa-trash-alt" style="color:var(--live-red); cursor:pointer;" onclick="event.stopPropagation(); handleDeletePlayer('${currentObjPlayerName.replace(/'/g, "\\'")}', '${currentTeamName.replace(/'/g, "\\'")}')"></i>
+                                </div>` : ''}
+                            </li>`;
+                        });
+                        html += `</ul>`;
+                    }
+                    html += `</div></div>`;
+                });
+            }
             container.innerHTML = html;
         }
 
@@ -1287,28 +1403,190 @@
             container.innerHTML = html;
         }
 
+        // HOME PAGE UPCOMING UNFINISHED MATCHES DISPLAY
+        function renderHomeMatches(matches) {
+            const container = document.getElementById('liveMatchesContainer');
+            if (!container) return;
+
+            // Filters to display only matches with no score entered yet
+            let upcomingMatches = matches.filter(m => !m.ScoreA && !m.ScoreB);
+
+            if (upcomingMatches.length === 0) {
+                container.innerHTML = '<div class="empty-text">No pending upcoming matches. All caught up!</div>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left;">';
+            upcomingMatches.slice(0, 5).forEach(m => {
+                html += `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="background: var(--warning-orange); color:#000; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-right: 8px;">UPCOMING</span>
+                            <span style="color: white; font-weight: 600;">${m.TeamA} vs ${m.TeamB}</span>
+                            <br><span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 80px;">Sched: ${m.Time || 'TBA'} | ${m.Category || m.EventName}</span>
+                        </div>
+                        <i class="far fa-clock" style="color: var(--text-muted); padding-right:10px;"></i>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // EDIT & DELETE HANDLERS (TEAMS)
+        function openEditTeamModal(teamName, category) {
+            editingTeamName = teamName;
+            document.getElementById('editTeamNameInput').value = teamName;
+            document.getElementById('editTeamCategoryInput').value = category;
+            openModal('editTeamModal');
+        }
+
+        async function handleSaveEditTeam(e) {
+            e.preventDefault();
+            const newName = document.getElementById('editTeamNameInput').value;
+            const newCat = document.getElementById('editTeamCategoryInput').value;
+            
+            globalTeams.forEach(t => {
+                if((t.TeamName || t.teamName || t["Team Name"]) === editingTeamName && (t.EventName || t.eventName || t["Event Name"]) === currentOpenEvent.EventName) {
+                    t.TeamName = newName; t.teamName = newName; t["Team Name"] = newName;
+                    t.Category = newCat; t.category = newCat;
+                }
+            });
+
+            globalPlayers.forEach(p => {
+                if((p.TeamName || p.teamName || p["Team Name"]) === editingTeamName && (p.EventName || p.eventName || p["Event Name"]) === currentOpenEvent.EventName) {
+                    p.TeamName = newName; p.teamName = newName; p["Team Name"] = newName;
+                }
+            });
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'editTeam', eventName: currentOpenEvent.EventName, oldTeamName: editingTeamName, newTeamName: newName, category: newCat })
+                });
+            } catch(err) { console.error(err); }
+
+            closeModal('editTeamModal');
+            renderEventSpecificStandings(currentOpenEvent.EventName);
+            renderEventSpecificPlayers(currentOpenEvent.EventName);
+        }
+
+        async function handleDeleteTeam(teamName) {
+            if(!confirm(`Sigurado ka bang burahin ang team na "${teamName}"? Mawawala rin ang listahan ng mga players nito.`)) return;
+            globalTeams = globalTeams.filter(t => !((t.TeamName || t.teamName || t["Team Name"]) === teamName && (t.EventName || t.eventName || t["Event Name"]) === currentOpenEvent.EventName));
+            globalPlayers = globalPlayers.filter(p => !((p.TeamName || p.teamName || p["Team Name"]) === teamName && (p.EventName || p.eventName || p["Event Name"]) === currentOpenEvent.EventName));
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteTeam', eventName: currentOpenEvent.EventName, teamName: teamName })
+                });
+            } catch(err) { console.error(err); }
+            
+            renderEventSpecificStandings(currentOpenEvent.EventName);
+            renderEventSpecificPlayers(currentOpenEvent.EventName);
+        }
+
+        // EDIT & DELETE HANDLERS (PLAYERS)
+        function openEditPlayerModal(playerName, teamName) {
+            editingPlayerName = playerName;
+            editingPlayerTeam = teamName;
+            document.getElementById('editPlayerNameInput').value = playerName;
+            openModal('editPlayerModal');
+        }
+
+        async function handleSaveEditPlayer(e) {
+            e.preventDefault();
+            const newName = document.getElementById('editPlayerNameInput').value;
+            
+            globalPlayers.forEach(p => {
+                if((p.PlayerName || p.playerName || p["Player Name"]) === editingPlayerName && (p.TeamName || p.teamName || p["Team Name"]) === editingPlayerTeam && (p.EventName || p.eventName || p["Event Name"]) === currentOpenEvent.EventName) {
+                    p.PlayerName = newName; p.playerName = newName; p["Player Name"] = newName;
+                }
+            });
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'editPlayer', eventName: currentOpenEvent.EventName, teamName: editingPlayerTeam, oldPlayerName: editingPlayerName, newPlayerName: newName })
+                });
+            } catch(err) { console.error(err); }
+
+            closeModal('editPlayerModal');
+            renderEventSpecificPlayers(currentOpenEvent.EventName);
+        }
+
+        async function handleDeletePlayer(playerName, teamName) {
+            if(!confirm(`Sigurado ka bang burahin si "${playerName}" mula sa line-up?`)) return;
+            globalPlayers = globalPlayers.filter(p => !((p.PlayerName || p.playerName || p["Player Name"]) === playerName && (p.TeamName || p.teamName || p["Team Name"]) === teamName && (p.EventName || p.eventName || p["Event Name"]) === currentOpenEvent.EventName));
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deletePlayer', eventName: currentOpenEvent.EventName, teamName: teamName, playerName: playerName })
+                });
+            } catch(err) { console.error(err); }
+
+            renderEventSpecificPlayers(currentOpenEvent.EventName);
+        }
+
+        // FUNCTIONAL END TOURNAMENT BUTTON
+        async function handleEndTournament() {
+            if(!currentOpenEvent) return;
+            if(!confirm(`Sigurado ka ba na gusto mong tapusin ang tournament na "${currentOpenEvent.EventName}"? Ililipat na ito ng system sa record ng Past Tournaments.`)) return;
+            
+            try {
+                currentOpenEvent.Status = "Past";
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'endTournament', eventName: currentOpenEvent.EventName })
+                });
+                alert("Tournament successfully marked as ended/completed!");
+                fetchDashboardData();
+                goBackToReferrer();
+            } catch (error) {
+                console.error("Error closing tournament:", error);
+                alert("Nai-save ang registration status ngunit nagka-network error sa synchronization process.");
+            }
+        }
+
         function openAddTeamModal() {
             if(!currentOpenEvent) return;
             document.getElementById('addTeamEventLabel').innerText = `Tournament: ${currentOpenEvent.EventName}`;
             openModal('addTeamModal');
         }
 
-        function handleAddTeam(e) {
+        async function handleAddTeam(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
             const tName = document.getElementById('teamNameInput').value;
             const tCat = document.getElementById('teamCategoryInput').value;
             
-            globalTeams.push({ 
-                eventName: currentOpenEvent.EventName, 
-                teamName: tName, 
-                category: tCat 
-            });
+            const payload = { action: 'addTeam', eventName: currentOpenEvent.EventName, teamName: tName, category: tCat };
+            globalTeams.push(payload);
 
-            alert(`Selyado! Ang team na ${tName} ay na-add sa memory.`);
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) { console.error("Error saving to sheets:", error); }
+
+            alert(`Success! The team ${tName} has been saved.`);
             e.target.reset(); 
+            btn.innerText = originalText;
+            btn.disabled = false;
             closeModal('addTeamModal');
             
-            // I-refresh agad ang tamang subview panel
             renderEventSpecificStandings(currentOpenEvent.EventName);
             renderEventSpecificPlayers(currentOpenEvent.EventName);
         }
@@ -1317,40 +1595,60 @@
             if(!currentOpenEvent) return;
             document.getElementById('addPlayerEventLabel').innerText = `Tournament: ${currentOpenEvent.EventName}`;
             
-            const evtTeams = globalTeams.filter(t => t.eventName === currentOpenEvent.EventName);
-            const teamSelect = document.getElementById('playerTeamInput');
+            const evtTeams = globalTeams.filter(t => 
+                (t.EventName || t.eventName || t["Event Name"]) === currentOpenEvent.EventName
+            );
             
-            let optionsHtml = '<option value="" disabled selected>Pumili ng Team...</option>';
-            evtTeams.forEach(t => { optionsHtml += `<option value="${t.teamName}">${t.teamName}</option>`; });
+            const teamSelect = document.getElementById('playerTeamInput');
+            let optionsHtml = '<option value="" disabled selected>Select a Team...</option>';
+            evtTeams.forEach(t => { 
+                const tName = t.TeamName || t.teamName || t["Team Name"];
+                optionsHtml += `<option value="${tName}">${tName}</option>`; 
+            });
             
             if(evtTeams.length === 0) {
-                optionsHtml = '<option value="" disabled selected>Wala pang na-add na Team dito.</option>';
+                optionsHtml = '<option value="" disabled selected>No Teams added here yet.</option>';
             }
             teamSelect.innerHTML = optionsHtml;
             openModal('addPlayerModal');
         }
 
-        function handleAddPlayer(e) {
+        async function handleAddPlayer(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
             const selectedTeam = document.getElementById('playerTeamInput').value;
             const bulkText = document.getElementById('bulkPlayersInput').value;
             const namesArray = bulkText.split(/\r?\n/);
             
             let addedCount = 0;
+            let playersData = [];
+
             namesArray.forEach(name => {
                 const cleanName = name.trim();
                 if(cleanName !== '') {
-                    globalPlayers.push({
-                        eventName: currentOpenEvent.EventName,
-                        teamName: selectedTeam,
-                        playerName: cleanName
-                    });
+                    const playerObj = { eventName: currentOpenEvent.EventName, teamName: selectedTeam, playerName: cleanName };
+                    globalPlayers.push(playerObj);
+                    playersData.push(playerObj);
                     addedCount++;
                 }
             });
 
-            alert(`Selyado! ${addedCount} players ang na-add para sa team ${selectedTeam}.`);
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'addPlayersBulk', players: playersData }) 
+                });
+            } catch (error) { console.error("Error saving to sheets:", error); }
+
+            alert(`Success! ${addedCount} players added for team ${selectedTeam}.`);
             e.target.reset(); 
+            btn.innerText = originalText;
+            btn.disabled = false;
             closeModal('addPlayerModal');
 
             renderEventSpecificPlayers(currentOpenEvent.EventName);
@@ -1361,15 +1659,21 @@
             document.getElementById('matchEventName').value = currentOpenEvent.EventName;
             document.getElementById('addMatchEventNameLabel').innerText = `For: ${currentOpenEvent.EventName}`;
             
-            const evtTeams = globalTeams.filter(t => t.eventName === currentOpenEvent.EventName);
+            const evtTeams = globalTeams.filter(t => 
+                (t.EventName || t.eventName || t["Event Name"]) === currentOpenEvent.EventName
+            );
+            
             const teamASelect = document.getElementById('matchTeamA');
             const teamBSelect = document.getElementById('matchTeamB');
             
-            let optionsHtml = '<option value="" disabled selected>Pumili ng Team...</option>';
-            evtTeams.forEach(t => { optionsHtml += `<option value="${t.teamName}">${t.teamName}</option>`; });
+            let optionsHtml = '<option value="" disabled selected>Select a Team...</option>';
+            evtTeams.forEach(t => { 
+                const tName = t.TeamName || t.teamName || t["Team Name"];
+                optionsHtml += `<option value="${tName}">${tName}</option>`; 
+            });
             
             if(evtTeams.length === 0) {
-                optionsHtml = '<option value="" disabled selected>Wala pang Team sa Tournament na ito.</option>';
+                optionsHtml = '<option value="" disabled selected>No Teams in this Tournament yet.</option>';
             }
             
             teamASelect.innerHTML = optionsHtml;
@@ -1377,17 +1681,48 @@
             openModal('addMatchModal');
         }
 
-        function handleAddMatch(e) {
+        async function handleAddMatch(e) {
             e.preventDefault();
             const teamA = document.getElementById('matchTeamA').value;
             const teamB = document.getElementById('matchTeamB').value;
+            
             if(teamA === teamB) {
-                alert("Hindi pwedeng parehas ang magkalaban (Team A at Team B). Pakiayos.");
+                alert("Team A and Team B cannot be the same. Please fix.");
                 return;
             }
-            alert("Match Details Ready! Ang data ay maipapadala sa Google Sheets.");
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const payload = {
+                action: 'addMatch',
+                eventName: document.getElementById('matchEventName').value,
+                teamA: teamA,
+                teamB: teamB,
+                date: document.getElementById('matchDate').value,
+                time: document.getElementById('matchTime').value,
+                field: document.getElementById('matchField').value,
+                duration: document.getElementById('matchDuration').value,
+                category: document.getElementById('matchCategory').value,
+                type: document.getElementById('matchType').value
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                alert("Match Details Saved! Data sent to Google Sheets.");
+            } catch (error) { console.error("Error saving match:", error); }
+
             e.target.reset();
+            btn.innerText = originalText;
+            btn.disabled = false;
             closeModal('addMatchModal');
+            fetchDashboardData();
         }
 
         function openEditEventModal() {
@@ -1400,29 +1735,13 @@
             openModal('editEventModal');
         }
 
-        function handleEditEvent(e) { e.preventDefault(); closeModal('editEventModal'); }
-        function handleEndTournament() { alert("Tournament set to closed/past execution."); }
-
-        function renderHomeMatches(matches) {
-            const container = document.getElementById('liveMatchesContainer');
-            if (!container || matches.length === 0) return;
-            let html = '<div style="display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left;">';
-            matches.slice(0, 4).forEach(m => {
-                html += `
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="background: var(--live-red); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-right: 8px;">${m.Time}</span>
-                            <span style="color: white; font-weight: 600;">${m.TeamA} vs ${m.TeamB}</span>
-                        </div>
-                        <span style="color: #f9385b; font-weight:700;">${m.ScoreA || '0'} - ${m.ScoreB || '0'}</span>
-                    </div>`;
-            });
-            html += '</div>';
-            container.innerHTML = html;
+        async function handleEditEvent(e) { 
+            e.preventDefault(); 
+            closeModal('editEventModal'); 
         }
 
         async function handleDeleteEvent(eventName) {
-            if (!confirm(`Sigurado ka bang gusto mong burahin ang event na "${eventName}"?`)) return;
+            if (!confirm(`Are you sure you want to delete the event "${eventName}"?`)) return;
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1436,7 +1755,9 @@
         function switchView(viewId, clickedTab) {
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active-view');
+            
+            const targetView = document.getElementById(viewId);
+            if(targetView) targetView.classList.add('active-view');
             clickedTab.classList.add('active');
 
             localStorage.setItem('f30_active_view', viewId);
@@ -1490,8 +1811,33 @@
 
         async function handleCreateEvent(e) {
             e.preventDefault();
-            alert("Event submit logic running...");
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const payload = {
+                action: 'createEvent',
+                eventName: document.getElementById('eventName').value,
+                eventDate: document.getElementById('eventDate').value,
+                location: document.getElementById('eventLocation').value,
+                category: document.getElementById('eventCategory').value
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                alert("Event successfully created and saved to Google Sheets.");
+            } catch (error) { console.error("Error creating event:", error); }
+
+            btn.innerText = originalText;
+            btn.disabled = false;
             closeModal('addEventModal');
+            e.target.reset();
+            document.getElementById('imagePreviewContainer').innerHTML = "Image Preview";
             fetchDashboardData();
         }
 
