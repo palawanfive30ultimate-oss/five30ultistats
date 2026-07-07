@@ -1390,7 +1390,7 @@
             container.innerHTML = html;
         }
 
-        function renderEventSpecificPlayers(eventName) {
+     function renderEventSpecificPlayers(eventName) {
             const container = document.getElementById('eventPlayersContainer');
             const evtTeams = globalTeams.filter(t => (t.EventName || t.eventName || t["Event Name"]) === eventName);
             
@@ -1406,59 +1406,86 @@
                 groupedDivisions[div].push(t);
             });
 
-            let html = '';
-            let isAdmin = checkAdminRole();
-
+            // Gagawa tayo ng dalawang wrapper: isa para sa Listahan ng Teams, isa para sa Roster Detail
+            let html = '<div id="teamsRosterList">'; 
+            
             for (let division in groupedDivisions) {
                 html += `<h3 style="margin: 25px 0 10px 0; color: #f59e0b; font-size: 1rem; text-transform: uppercase;"><i class="fas fa-layer-group"></i> ${division}</h3>`;
                 
                 groupedDivisions[division].forEach(t => {
                     const currentTeamName = t.TeamName || t.teamName || t["Team Name"] || "Unnamed Team";
-                    const teamPlayers = globalPlayers.filter(p => 
-                        (p.TeamName || p.teamName || p["Team Name"]) === currentTeamName && 
-                        (p.EventName || p.eventName || p["Event Name"]) === eventName
-                    );
                     
+                    // Clickable Card imbes na Accordion
                     html += `
-                    <div class="accordion-item" style="margin-bottom: 8px;">
-                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('active')">
-                            <span><i class="fas fa-users" style="color:#f9385b; margin-right:8px;"></i> ${currentTeamName}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-content">`;
-                    
-                    if(teamPlayers.length === 0) {
-                        html += `<div style="padding: 15px 0; color: var(--text-muted); font-size: 0.9rem;">No players assigned to this team yet.</div>`;
-                    } else {
-                        html += `<div class="player-grid">`;
-                        teamPlayers.forEach(p => {
-                            const currentObjPlayerName = p.PlayerName || p.playerName || p["Player Name"] || "Unknown";
-                            const ign = p.IGN || "No IGN Data";
-                            const picUrl = p.PhotoUrl || "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=300&q=80";
-
-                            html += `
-                            <div class="player-card">
-                                <img src="${picUrl}" class="player-card-img" alt="Player">
-                                ${isAdmin ? `
-                                <div class="player-card-actions">
-                                    <button title="Edit Player" onclick="event.stopPropagation(); openEditPlayerModal('${currentObjPlayerName.replace(/'/g, "\\'")}', '${currentTeamName.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
-                                    <button title="Delete Player" style="background: var(--live-red); border-color: var(--live-red);" onclick="event.stopPropagation(); handleDeletePlayer('${currentObjPlayerName.replace(/'/g, "\\'")}', '${currentTeamName.replace(/'/g, "\\'")}')"><i class="fas fa-trash-alt"></i></button>
-                                </div>` : ''}
-                                <div class="player-card-name">${currentObjPlayerName}</div>
-                                <div class="player-card-ign">${ign}</div>
-                                <div class="player-card-stats">
-                                    <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Goals</span></div>
-                                    <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Asts</span></div>
-                                    <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Blks</span></div>
-                                </div>
-                            </div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    html += `</div></div>`;
+                    <div class="team-list-card" onclick="viewTeamRoster('${currentTeamName.replace(/'/g, "\\'")}', '${eventName.replace(/'/g, "\\'")}')" style="background: rgba(255, 255, 255, 0.05); padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s;">
+                        <span style="font-weight: 600; color: #ffffff;"><i class="fas fa-users" style="color:#f9385b; margin-right:10px;"></i> ${currentTeamName}</span>
+                        <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                    </div>`;
                 });
             }
+            html += '</div>'; // End ng teamsRosterList
+            
+            // Container para sa Actual Players (Nakatago muna by default)
+            html += '<div id="teamRosterDetail" style="display: none;"></div>';
+            
             container.innerHTML = html;
+        }
+
+        function viewTeamRoster(teamName, eventName) {
+            // Itago ang listahan ng teams at ilabas ang roster container
+            document.getElementById('teamsRosterList').style.display = 'none';
+            const rosterContainer = document.getElementById('teamRosterDetail');
+            rosterContainer.style.display = 'block';
+            
+            let isAdmin = checkAdminRole();
+            
+            const teamPlayers = globalPlayers.filter(p => 
+                (p.TeamName || p.teamName || p["Team Name"]) === teamName && 
+                (p.EventName || p.eventName || p["Event Name"]) === eventName
+            );
+            
+            // Header na may Back Button
+            let html = `
+            <div style="display: flex; align-items: center; margin-bottom: 20px; margin-top: 10px;">
+                <button onclick="backToTeamsRoster()" style="background: transparent; border: none; color: #ffffff; font-size: 1.2rem; margin-right: 15px; cursor: pointer; padding: 5px;"><i class="fas fa-arrow-left"></i></button>
+                <h3 style="margin: 0; color: #f9385b; font-size: 1.2rem; text-transform: uppercase;">${teamName} ROSTER</h3>
+            </div>`;
+            
+            if(teamPlayers.length === 0) {
+                html += `<div class="empty-text" style="padding: 20px 0;">No players assigned to this team yet.</div>`;
+            } else {
+                html += `<div class="player-grid">`;
+                teamPlayers.forEach(p => {
+                    const currentObjPlayerName = p.PlayerName || p.playerName || p["Player Name"] || "Unknown";
+                    const ign = p.IGN || "No IGN Data";
+                    const picUrl = p.PhotoUrl || "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=300&q=80";
+
+                    html += `
+                    <div class="player-card">
+                        <img src="${picUrl}" class="player-card-img" alt="Player">
+                        ${isAdmin ? `
+                        <div class="player-card-actions">
+                            <button title="Edit Player" onclick="event.stopPropagation(); openEditPlayerModal('${currentObjPlayerName.replace(/'/g, "\\'")}', '${teamName.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
+                            <button title="Delete Player" style="background: var(--live-red); border-color: var(--live-red);" onclick="event.stopPropagation(); handleDeletePlayer('${currentObjPlayerName.replace(/'/g, "\\'")}', '${teamName.replace(/'/g, "\\'")}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>` : ''}
+                        <div class="player-card-name">${currentObjPlayerName}</div>
+                        <div class="player-card-ign">${ign}</div>
+                        <div class="player-card-stats">
+                            <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Goals</span></div>
+                            <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Asts</span></div>
+                            <div class="stat-item"><span class="stat-val">0</span><span class="stat-label">Blks</span></div>
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+            rosterContainer.innerHTML = html;
+        }
+
+        function backToTeamsRoster() {
+            // Itago ulit ang roster detail at ibalik ang listahan ng teams
+            document.getElementById('teamRosterDetail').style.display = 'none';
+            document.getElementById('teamsRosterList').style.display = 'block';
         }
 
         // MATCH CARD RENDERER (UPDATED WITH ENTER STATS)
