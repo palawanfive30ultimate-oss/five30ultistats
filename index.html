@@ -203,59 +203,6 @@
         .btn-match-details { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.3s; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;}
         .btn-match-details:hover { background: var(--brand-gradient); border-color: transparent; }
 
-        /* TEAM ROSTER GRID & LIST (Mobile Optimized) */
-        .team-roster-list-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.3s;
-            color: white;
-            font-weight: bold;
-        }
-        .team-roster-list-item:hover {
-            border-color: #f9385b;
-            background: rgba(255,255,255,0.05);
-        }
-        .roster-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-            max-height: 350px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-        .player-compact-card {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .player-compact-name {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .player-compact-stats {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 800;
-        }
-
 
         /* PLAYER GRID */
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 15px 0; }
@@ -371,6 +318,23 @@
         .matches-section { background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
         .matches-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
         .matches-list { display: flex; flex-direction: column; gap: 15px; }
+
+        /* DEDICATED TEAM ROSTER PAGE STYLES */
+        .team-roster-list-item { background: var(--bg-card); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.3s; color: white; font-weight: bold; }
+        .team-roster-list-item:hover { border-color: #f9385b; background: rgba(255,255,255,0.05); transform: translateX(5px); }
+        
+        .roster-page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
+        
+        .player-compact-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 10px; text-align: center; display: flex; flex-direction: column; gap: 8px; transition: 0.3s; }
+        .player-compact-card:hover { border-color: var(--brand-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        .player-compact-avatar { width: 60px; height: 60px; border-radius: 50%; background: #000; border: 2px solid var(--brand-blue); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--brand-blue); }
+        .player-compact-name { font-size: 0.95rem; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase;}
+        .player-compact-ign { font-size: 0.75rem; color: var(--text-muted); margin-top: -5px; }
+        
+        .player-compact-stats { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: flex; justify-content: space-around; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;}
+        .player-compact-stats span { display: flex; flex-direction: column; gap: 3px; color: #f9385b;}
+        .player-compact-stats span b { color: white; font-size: 0.85rem;}
 
         /* MOBILE RESPONSIVE QUERIES */
         @media (max-width: 992px) {
@@ -700,15 +664,38 @@
                 </div>
             </div>
 
-            <div class="dedicated-view-panel" id="playersPanel">
+         <div class="dedicated-view-panel" id="playersPanel">
                 <div class="matches-section">
-                    <div class="matches-header" style="font-size: 0.9rem; color: var(--text-muted);"><span>Tournament Teams (Click to view Roster)</span></div>
+                    <div class="matches-header"><span>Tournament Teams (Click to view Roster)</span></div>
                     <div class="matches-list" id="eventPlayersContainer">
                         <div class="empty-text" style="padding: 20px 0;">No teams registered in this tournament yet.</div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="teamRosterView" class="view-section">
+            <div class="section-header-row" style="margin-bottom: 20px;">
+                <button class="btn-edit" onclick="goBackToTournamentDetails()" style="padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-arrow-left"></i> Back to Tournament
+                </button>
+            </div>
+
+            <div class="event-details-info" style="text-align: center; margin-bottom: 30px; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <div class="event-details-title" id="rosterViewTeamName" style="font-size: 1.8rem; margin-bottom: 5px; text-transform: uppercase;">Team Name</div>
+                <div class="event-details-meta" style="justify-content: center;">
+                    <span><i class="fas fa-tag"></i> <span id="rosterViewDivision">Division</span></span>
+                </div>
+            </div>
+
+            <div class="matches-section">
+                <div class="matches-header"><span>Official Roster</span></div>
+                <div class="roster-page-grid" id="rosterPageGridContainer">
+                    <div class="empty-text" style="grid-column: 1 / -1;">Loading players...</div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
    <div class="modal-overlay" id="matchStatsModal">
@@ -1081,24 +1068,6 @@
                 <button type="submit" class="btn-submit-modal" id="regSubmitBtn">Register</button>
                 <div class="modal-footer-text">Already have an account? <a href="#" onclick="switchModal('registerModal', 'loginModal')">Log In</a></div>
             </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="teamRosterModal">
-        <div class="modal-container">
-            <button class="btn-close" onclick="closeModal('teamRosterModal')"><i class="fas fa-times"></i></button>
-            <div class="modal-header">
-                <h2 id="rosterModalTeamName">Team Name</h2>
-                <div style="color: var(--text-muted); font-size: 0.9rem;" id="rosterModalDivision">Division Roster</div>
-            </div>
-            
-            <div class="roster-grid" id="rosterGridContainer">
-                <div class="empty-text" style="grid-column: span 2; padding: 20px 0;">Loading players...</div>
-            </div>
-            
-            <div style="margin-top: 20px; text-align: center;">
-                <button type="button" class="btn-cancel-modal" onclick="closeModal('teamRosterModal')">Close</button>
-            </div>
         </div>
     </div>
 
