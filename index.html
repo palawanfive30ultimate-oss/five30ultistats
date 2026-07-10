@@ -548,6 +548,7 @@
             <li><a class="nav-link" id="nav-teams" onclick="switchView('teamsView', this)"><i class="fas fa-users"></i> Teams</a></li>
             <li><a class="nav-link" id="nav-players" onclick="switchView('playersView', this)"><i class="fas fa-running"></i> Players</a></li>
             <li><a class="nav-link" id="nav-leaderboards" onclick="switchView('leaderboardsView', this)"><i class="fas fa-chart-bar"></i> Leaderboards</a></li>
+            
             <li style="opacity: 0.5; cursor: not-allowed;">
                 <a class="nav-link" style="pointer-events: none;">
                     <i class="fas fa-gamepad"></i> Badge Match 
@@ -868,6 +869,33 @@
 
     </main>
 
+  <div class="modal-overlay" id="editTeamLogoModal">
+    <div class="modal-container">
+        <button class="btn-close" onclick="closeModal('editTeamLogoModal')"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <h2>Update Team Logo</h2>
+            <div style="color: var(--text-muted); font-size: 0.9rem;" id="logoModalTeamName">Team Name</div>
+        </div>
+        <form id="editTeamLogoForm" onsubmit="handleSaveTeamLogo(event)">
+            <input type="hidden" id="logoUploadTeamName">
+            
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <div class="file-upload-box" onclick="document.getElementById('teamLogoUpload').click()">
+                    <i class="fas fa-upload" style="font-size: 1.5rem; margin-bottom: 8px; color: var(--text-light);"></i>
+                    <span style="font-weight: 600; color: white;">[ Choose Logo ]</span>
+                    <input type="file" id="teamLogoUpload" accept="image/*" style="display: none;" onchange="previewImage(event, 'teamLogoPreviewContainer')">
+                </div>
+                <div class="image-preview" id="teamLogoPreviewContainer">Logo Preview</div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 25px;">
+                <button type="button" class="btn-cancel-modal" onclick="closeModal('editTeamLogoModal')">Cancel</button>
+                <button type="submit" class="btn-submit-modal" style="margin-top: 10px;">Save Logo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
   <div class="modal-overlay" id="matchStatsModal">
         <div class="modal-container large">
             <button class="btn-close" onclick="closeModal('matchStatsModal')"><i class="fas fa-times"></i></button>
@@ -1003,6 +1031,8 @@
         </div>
     </div>
 
+    
+
     <div class="modal-overlay" id="editTeamModal">
         <div class="modal-container">
             <button class="btn-close" onclick="closeModal('editTeamModal')"><i class="fas fa-times"></i></button>
@@ -1025,6 +1055,8 @@
             </form>
         </div>
     </div>
+
+    
 
    <div class="modal-overlay" id="addPlayerModal">
         <div class="modal-container large">
@@ -1310,7 +1342,7 @@
     </div>
 
    <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw52dZGJEgN_2jW01ObBzLMXpnoYyP2vn0Un8oS0KjUBBzglRlKb6BmuvfmZ8d9polk/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkgHlLdiY7Z7IYHRXzb97PE4yNaQYWDpzdCzKTqyHymJeqewY7AGResPJdSF8AD2Rq/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1570,10 +1602,10 @@
                     let scoreB = parseInt(m.ScoreB) || 0;
 
                     if (m.TeamA === tName) {
-                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 3 points
+                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 1 point (or adjust based on your system)
                         else if (scoreA < scoreB) { l++; }      // Loss = 0 points
                     } else if (m.TeamB === tName) {
-                        if (scoreB > scoreA) { w++; pts += 3; }
+                        if (scoreB > scoreA) { w++; pts += 1; } // Note: Based on your original code calculation
                         else if (scoreB < scoreA) { l++; }
                     }
                 }
@@ -1617,8 +1649,15 @@
                 html += `
                     <tr>
                         <td class="rank-col">${index + 1}</td>
-                        <td class="team-logo-cell">
+                        <td class="team-logo-cell" style="position: relative; display: flex; align-items: center; gap: 8px;">
                             <img src="${teamLogo}" class="table-team-logo" alt="Logo">
+                            
+                            ${isAdmin ? `
+                            <button class="btn-edit-logo" style="background: rgba(59, 48, 118, 0.7); color: white; border: none; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" onclick="event.stopPropagation(); openTeamLogoModal('${t.displayTeamName.replace(/'/g, "\\'")}')" title="Upload Logo">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            ` : ''}
+                            
                             <span style="font-weight: 700;">${t.displayTeamName}</span>
                         </td>
                         <td>${t.w}</td>
@@ -1626,7 +1665,7 @@
                         <td><strong style="color: var(--brand-orange);">${t.pts}</strong></td>
                         ${isAdmin ? `
                         <td style="text-align:center;">
-                            <button class="btn-edit-logo" style="display:inline-flex; padding: 6px 10px; font-size:0.8rem; margin-right:5px;" onclick="openEditTeamModal('${t.displayTeamName.replace(/'/g, "\\'")}', '${division.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-edit-team" style="display:inline-flex; padding: 6px 10px; font-size:0.8rem; margin-right:5px; background: #3b3076; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="openEditTeamModal('${t.displayTeamName.replace(/'/g, "\\'")}', '${division.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
                         </td>` : ''}
                     </tr>
                 `;
@@ -2728,6 +2767,124 @@ function openMatchStats(index) {
         defaultMatchMinutes = minutes;
         resetMatchTimer();
     }
+
+    function renderLeaderboard(category = 'Overall') {
+  const container = document.getElementById('leaderboardContainer');
+  if(!container) return;
+  
+  // Update UI ng active tab button
+  const tabs = document.querySelectorAll('#leaderboardView .tab-btn');
+  tabs.forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  // I-filter ang 'globalPlayers' base sa category na pinili
+  let players = globalPlayers.filter(p => {
+    if (category === 'Overall') return true;
+    if (category === 'Mixed') return p.gender === 'Mixed'; // O i-adjust ayon sa DB logic mo
+    return p.gender && p.gender.toLowerCase() === category.toLowerCase();
+  });
+
+  // I-compute ang total stat rating (e.g. Total = Goals + Assists + Blocks)
+  players.forEach(p => {
+    p.totalScore = (parseInt(p.Goals) || 0) + (parseInt(p.Assists) || 0) + (parseInt(p.Blocks) || 0);
+  });
+
+  // I-sort mula pinakamataas (Highest to Lowest)
+  players.sort((a, b) => b.totalScore - a.totalScore);
+
+  // Gawan ng Table HTML ang na-sort na Leaderboard
+  let html = `<table class="standings-table">
+                <tr>
+                  <th>Rank</th>
+                  <th>Player Name</th>
+                  <th>Team</th>
+                  <th>G</th>
+                  <th>A</th>
+                  <th>B</th>
+                  <th>Total</th>
+                </tr>`;
+  
+  if(players.length === 0) {
+     html += `<tr><td colspan="7" class="empty-text">Walang records para sa category na ito.</td></tr>`;
+  } else {
+    players.forEach((p, index) => {
+      html += `<tr>
+        <td class="rank-col">#${index + 1}</td>
+        <td style="font-weight: 700; color: white;">${p.playerName}</td>
+        <td style="color: var(--text-muted);">${p.teamName}</td>
+        <td>${p.Goals || 0}</td>
+        <td>${p.Assists || 0}</td>
+        <td>${p.Blocks || 0}</td>
+        <td style="font-weight:900; color:#f9385b;">${p.totalScore}</td>
+      </tr>`;
+    });
+  }
+  
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+// Function para buksan ang Modal
+function openTeamLogoModal(teamName) {
+    document.getElementById('logoModalTeamName').innerText = teamName;
+    document.getElementById('logoUploadTeamName').value = teamName;
+    document.getElementById('teamLogoPreviewContainer').innerHTML = "Logo Preview"; // Reset preview
+    document.getElementById('teamLogoUpload').value = ""; // Clear file input
+    openModal('editTeamLogoModal');
+}
+
+// Function para i-process at i-save ang image
+async function handleSaveTeamLogo(e) {
+    e.preventDefault();
+    const teamName = document.getElementById('logoUploadTeamName').value;
+    const fileInput = document.getElementById('teamLogoUpload');
+    const btn = e.target.querySelector('button[type="submit"]');
+    
+    if (fileInput.files.length === 0) {
+        alert("Pumili muna ng image file para sa logo.");
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.innerText = "Uploading...";
+    btn.disabled = true;
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    
+    // Kino-convert ang image para pwedeng i-send sa internet (Base64)
+    reader.onload = async function(eReader) {
+        const base64Data = eReader.target.result.split(',')[1];
+        
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ 
+                    action: 'updateTeamLogo', // Kailangan idagdag ang action na 'to sa Google Apps Script mo later
+                    eventName: currentOpenEvent.EventName, 
+                    teamName: teamName,
+                    photoData: base64Data,
+                    photoName: file.name
+                })
+            });
+            
+            alert("Team Logo Successfully Updated! Paki-refresh ang dashboard para makita ang pagbabago.");
+            closeModal('editTeamLogoModal');
+            fetchDashboardData(); // Refresh the list
+            
+        } catch(err) {
+            console.error("Error uploading logo:", err);
+            alert("Nagkaroon ng error sa pag-upload. Check your connection.");
+        }
+        
+        btn.innerText = originalText;
+        btn.disabled = false;
+    };
+    
+    reader.readAsDataURL(file);
+}
+
 </script>
 </body>
 </html>
