@@ -916,12 +916,16 @@
             <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; text-align: center;">
                 <div style="margin-bottom: 15px;">
                     <label style="color: var(--text-muted); font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">Game Phase:</label>
-                    <select id="gamePhaseSelect" style="background: var(--bg-main); color: white; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; outline: none; margin-left: 10px; font-weight: bold;">
-                        <option value="Round Robin">Round Robin</option>
-                        <option value="Quarter Finals">Quarter Finals</option>
-                        <option value="Semi Finals">Semi Finals</option>
-                        <option value="Championship">Championship</option>
-                    </select>
+                   <select id="gamePhaseSelect" style="background: var(--bg-main); color: white; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; outline: none; margin-left: 10px; font-weight: bold;">
+    <option value="Round Robin">Round Robin</option>
+    <option value="Battle for 9th Place">Battle for 9th Place</option>
+    <option value="Battle for 7th Place">Battle for 7th Place</option>
+    <option value="Battle for 5th Place">Battle for 5th Place</option>
+    <option value="Battle for 3rd Place">Battle for 3rd Place</option>
+    <option value="Quarter Finals">Quarter Finals</option>
+    <option value="Semi Finals">Semi Finals</option>
+    <option value="Championship">Championship</option>
+</select>
                 </div>
 
                 <h2 id="matchTimerDisplay" style="font-size: 4rem; font-weight: 900; color: white; letter-spacing: 2px; font-variant-numeric: tabular-nums; line-height: 1; margin: 0 0 15px 0;">60:00</h2>
@@ -1342,7 +1346,7 @@
     </div>
 
    <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkgHlLdiY7Z7IYHRXzb97PE4yNaQYWDpzdCzKTqyHymJeqewY7AGResPJdSF8AD2Rq/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQQkLGR8WmatzrA1hAOF9Xb5s70FZ7ussJZpEvTRLr6jSvFB_VkFoBbwQekvIV4sca/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1582,7 +1586,7 @@
         localStorage.setItem('f30_active_view', referrerView);
     }
 
-   function renderEventSpecificStandings(eventName) {
+  function renderEventSpecificStandings(eventName) {
         const container = document.getElementById('eventTeamsContainer');
         const evtTeams = globalTeams.filter(t => (t.EventName || t.eventName || t["Event Name"]) === eventName);
         
@@ -1597,15 +1601,18 @@
             let w = 0, l = 0, pts = 0;
 
             globalMatches.forEach(m => {
-                if (m.EventName === eventName && m.matchStatus === 'Ended') {
+                // 🛑 DITO YUNG LOGIC: Bibilangin lang kapag 'Round Robin' (O kapag blank/undefined sa lumang database records)
+                let isRoundRobin = (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '');
+
+                if (m.EventName === eventName && m.matchStatus === 'Ended' && isRoundRobin) {
                     let scoreA = parseInt(m.ScoreA) || 0;
                     let scoreB = parseInt(m.ScoreB) || 0;
 
                     if (m.TeamA === tName) {
-                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 1 point (or adjust based on your system)
+                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 1 point
                         else if (scoreA < scoreB) { l++; }      // Loss = 0 points
                     } else if (m.TeamB === tName) {
-                        if (scoreB > scoreA) { w++; pts += 1; } // Note: Based on your original code calculation
+                        if (scoreB > scoreA) { w++; pts += 1; } 
                         else if (scoreB < scoreA) { l++; }
                     }
                 }
@@ -2012,12 +2019,37 @@ function openMatchStats(index) {
         renderStatsBreakdown();
     }
 
-   async function saveMatchStats(isEnding = false) {
+    
+
+    function saveMatchStatsToDatabase(matchId) {
+    // ... logic mo sa pagkuha ng scores at breakdown
+    let matchStatus = 'Ended'; 
+    let gamePhaseVal = document.getElementById('gamePhaseSelect').value; // KUNIN ANG VALUE NG DROPDOWN
+
+    google.script.run
+        .withSuccessHandler(function(response) {
+            console.log("Match updated!");
+            // ... reload data mo
+        })
+        // Ipasa ang gamePhaseVal bilang argumento sa GAS function mo
+        .updateMatchStats(matchId, scoreA, scoreB, currentStatsBreakdown, matchStatus, gamePhaseVal); 
+}
+
+
+  async function saveMatchStats(isEnding = false) {
         const m = globalMatches[currentMatchStatsIndex];
         
         m.ScoreA = parseInt(document.getElementById('scoreValA').innerText);
         m.ScoreB = parseInt(document.getElementById('scoreValB').innerText);
         m.statsBreakdown = [...tempMatchStats];
+        
+        // 1. KUNIN ANG GAME PHASE MULA SA DROPDOWN
+        let phaseSelect = document.getElementById('gamePhaseSelect');
+        if (phaseSelect) {
+            m.gamePhase = phaseSelect.value;
+        } else {
+            m.gamePhase = m.gamePhase || 'Round Robin'; 
+        }
         
         // Pag pinindot ang End Match button, idedeklara agad ng system ang nanalo base sa score
         if(isEnding) {
@@ -2045,9 +2077,10 @@ function openMatchStats(index) {
                 teamB: m.TeamB,
                 scoreA: m.ScoreA,
                 scoreB: m.ScoreB,
-                statsBreakdown: m.statsBreakdown, // FRONTEND SENDS BREAKDOWN HERE
+                statsBreakdown: m.statsBreakdown, 
                 matchStatus: m.matchStatus,
-                winner: m.winner || ""
+                winner: m.winner || "",
+                gamePhase: m.gamePhase // <--- 2. IPAPASA NA SA GOOGLE SHEETS
             };
 
             await fetch(APPS_SCRIPT_URL, {
@@ -2674,36 +2707,39 @@ function openMatchStats(index) {
         }
     }
 
-   function getPlayerTotalStats(playerName, teamName, eventName) {
-        let player = globalPlayers.find(p => 
-            (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
-            (p.TeamName || p.teamName || p["Team Name"]) === teamName &&
-            (p.EventName || p.eventName || p["Event Name"]) === eventName
-        );
-        
-        // Simulan natin sa manual stats na inedit ni admin kung meron man
-        let totalG = parseInt(player?.Goals || 0);
-        let totalA = parseInt(player?.Assists || 0);
-        let totalB = parseInt(player?.Blocks || 0);
+  function getPlayerTotalStats(playerName, teamName, eventName) {
+    let player = globalPlayers.find(p => 
+        (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
+        (p.TeamName || p.teamName || p["Team Name"]) === teamName &&
+        (p.EventName || p.eventName || p["Event Name"]) === eventName
+    );
+    
+    // Simulan natin sa manual stats na inedit ni admin kung meron man
+    let totalG = parseInt(player?.Goals || 0);
+    let totalA = parseInt(player?.Assists || 0);
+    let totalB = parseInt(player?.Blocks || 0);
 
-        // Kunin lahat ng matches sa specific event na ito
-        const eventMatches = globalMatches.filter(m => m.EventName === eventName);
-        
-        eventMatches.forEach(match => {
-            if(match.statsBreakdown && Array.isArray(match.statsBreakdown)) {
-                match.statsBreakdown.forEach(stat => {
-                    // Titingnan natin kung tumugma ang pangalan ng player sa na-record sa score breakdown
-                    if(stat.team === teamName) {
-                        if(stat.goal === playerName) totalG++;
-                        if(stat.assist === playerName) totalA++;
-                        if(stat.block === playerName) totalB++;
-                    }
-                });
-            }
-        });
+    // DITO ANG PAGBABAGO: I-filter para EventName na tugma AT "Round Robin" lang na gamePhase
+    const eventMatches = globalMatches.filter(m => 
+        m.EventName === eventName && 
+        m.gamePhase === 'Round Robin'
+    );
+    
+    eventMatches.forEach(match => {
+        if(match.statsBreakdown && Array.isArray(match.statsBreakdown)) {
+            match.statsBreakdown.forEach(stat => {
+                // Titingnan natin kung tumugma ang pangalan ng player sa na-record sa score breakdown
+                if(stat.team === teamName) {
+                    if(stat.goal === playerName) totalG++;
+                    if(stat.assist === playerName) totalA++;
+                    if(stat.block === playerName) totalB++;
+                }
+            });
+        }
+    });
 
-        return { G: totalG, A: totalA, B: totalB, Total: (totalG + totalA + totalB) };
-    }
+    return { G: totalG, A: totalA, B: totalB, Total: (totalG + totalA + totalB) };
+}
 
     // TIMER LOGIC WITH HIDDEN CLOCK FOR MINUTE MARKS
     let matchTimerInterval;
