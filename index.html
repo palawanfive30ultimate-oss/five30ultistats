@@ -754,10 +754,38 @@
             </div>
         </div>
 
-        <div id="leaderboardsView" class="view-section">
+       <div id="leaderboardsView" class="view-section">
             <h2 class="events-page-header">Overall Rankings & Leaderboards</h2>
-            <div class="empty-state-box">
-                <div class="empty-text">Leaderboard rankings will dynamically sync based on statistics gathered from active matches.</div>
+            
+            <div class="event-tabs" style="margin-bottom: 20px; justify-content: center;">
+                <button class="tab-btn active" id="lbTabOverall" onclick="filterLeaderboard('Overall')">
+                    <i class="fas fa-globe"></i> Mixed (Overall)
+                </button>
+                <button class="tab-btn" id="lbTabMen" onclick="filterLeaderboard('Men')">
+                    <i class="fas fa-mars"></i> Men
+                </button>
+                <button class="tab-btn" id="lbTabWomen" onclick="filterLeaderboard('Women')">
+                    <i class="fas fa-venus"></i> Women
+                </button>
+            </div>
+
+            <div class="dedicated-view-panel active-panel" style="background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                <table class="standings-table">
+                    <thead>
+                        <tr>
+                            <th class="rank-col">Rank</th>
+                            <th style="text-align: left;">Player Name</th>
+                            <th>Team</th>
+                            <th title="Goals">G</th>
+                            <th title="Assists">A</th>
+                            <th title="Blocks">B</th>
+                            <th title="Total Pts" style="color: #f59e0b;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody">
+                        <tr><td colspan="7" class="empty-text">Loading leaderboard...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -1282,7 +1310,7 @@
     </div>
 
    <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykcTcOSIvNzHTAgXviby_pDB0JGIjux3wb_fkdZ-rKfZAjOzRyjCcKwKyw9SwrVJ7Z/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw52dZGJEgN_2jW01ObBzLMXpnoYyP2vn0Un8oS0KjUBBzglRlKb6BmuvfmZ8d9polk/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1542,7 +1570,7 @@
                     let scoreB = parseInt(m.ScoreB) || 0;
 
                     if (m.TeamA === tName) {
-                        if (scoreA > scoreB) { w++; pts += 3; } // Win = 3 points
+                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 3 points
                         else if (scoreA < scoreB) { l++; }      // Loss = 0 points
                     } else if (m.TeamB === tName) {
                         if (scoreB > scoreA) { w++; pts += 3; }
@@ -2094,6 +2122,8 @@ function openMatchStats(index) {
         renderEventSpecificPlayers(currentOpenEvent.EventName);
     }
 
+    
+
     function openEditPlayerModal(playerName, teamName, eventName) {
         let player = globalPlayers.find(p => 
             (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
@@ -2435,15 +2465,81 @@ function openMatchStats(index) {
     }
 
     // LEADERBOARDS GENDER FILTER
+   // LEADERBOARDS GENDER FILTER AT RENDERER
     function filterLeaderboard(gender) {
         currentLeaderboardFilter = gender;
-        // DITO TAYO MAG RENDER NG LEADERBOARD BASED SA GENDER
-        // Abangan ang HTML part natin dito, pero sa background filter ready na ito:
-        // let filteredPlayers = globalPlayers;
-        // if(gender !== 'Overall') {
-        //    filteredPlayers = filteredPlayers.filter(p => p.gender === gender);
-        // }
-        console.log("Leaderboard filtered by: ", gender);
+        
+        // Update Tab UI Colors
+        document.getElementById('lbTabOverall').classList.toggle('active', gender === 'Overall');
+        document.getElementById('lbTabMen').classList.toggle('active', gender === 'Men');
+        document.getElementById('lbTabWomen').classList.toggle('active', gender === 'Women');
+
+        const tbody = document.getElementById('leaderboardTableBody');
+        
+        if (globalPlayers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-text">No players found in the database.</td></tr>`;
+            return;
+        }
+
+        // Kukunin natin lahat ng players at i-cocompute ang stats nila gamit yung bagong function
+        let computedPlayers = globalPlayers.map(p => {
+            const pName = p.PlayerName || p.playerName || p["Player Name"];
+            const tName = p.TeamName || p.teamName || p["Team Name"];
+            const eName = p.EventName || p.eventName || p["Event Name"];
+            
+            const stats = getPlayerTotalStats(pName, tName, eName);
+            
+            return {
+                name: pName,
+                team: tName,
+                gender: p.gender || 'Unknown',
+                stats: stats
+            };
+        });
+
+        // Filter by gender
+        if (gender !== 'Overall') {
+            computedPlayers = computedPlayers.filter(p => p.gender === gender);
+        }
+
+        // Remove players na 0 ang total points para hindi kalat sa leaderboard
+        computedPlayers = computedPlayers.filter(p => p.stats.Total > 0);
+
+        // Sorting: Priority ang Total Pts, next ang Goals, next ang Assists
+        computedPlayers.sort((a, b) => {
+            if (b.stats.Total !== a.stats.Total) return b.stats.Total - a.stats.Total;
+            if (b.stats.G !== a.stats.G) return b.stats.G - a.stats.G;
+            return b.stats.A - a.stats.A;
+        });
+
+        // Render to HTML Table
+        if (computedPlayers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-text">No stats recorded yet for this category. Start adding scores!</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        computedPlayers.forEach((player, index) => {
+            // Lalagyan natin ng kulay yung top 3 ranks
+            let rankDisplay = index + 1;
+            if (index === 0) rankDisplay = `<i class="fas fa-medal" style="color: #fbbf24; font-size: 1.2rem;"></i>`;
+            else if (index === 1) rankDisplay = `<i class="fas fa-medal" style="color: #94a3b8; font-size: 1.2rem;"></i>`;
+            else if (index === 2) rankDisplay = `<i class="fas fa-medal" style="color: #b45309; font-size: 1.2rem;"></i>`;
+
+            html += `
+                <tr>
+                    <td class="rank-col" style="font-weight: 900; font-size: 1.1rem;">${rankDisplay}</td>
+                    <td style="text-align: left; font-weight: bold;">${player.name}</td>
+                    <td style="color: var(--text-muted); font-size: 0.9rem;">${player.team}</td>
+                    <td style="font-weight: bold;">${player.stats.G}</td>
+                    <td style="font-weight: bold;">${player.stats.A}</td>
+                    <td style="font-weight: bold;">${player.stats.B}</td>
+                    <td style="font-weight: 900; color: #f59e0b; font-size: 1.1rem;">${player.stats.Total}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
     }
 
     function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -2539,32 +2635,35 @@ function openMatchStats(index) {
         }
     }
 
-    function getPlayerTotalStats(playerName, teamName, eventName) {
+   function getPlayerTotalStats(playerName, teamName, eventName) {
         let player = globalPlayers.find(p => 
             (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
             (p.TeamName || p.teamName || p["Team Name"]) === teamName &&
             (p.EventName || p.eventName || p["Event Name"]) === eventName
         );
         
+        // Simulan natin sa manual stats na inedit ni admin kung meron man
         let totalG = parseInt(player?.Goals || 0);
         let totalA = parseInt(player?.Assists || 0);
         let totalB = parseInt(player?.Blocks || 0);
 
-        const eventMatches = globalMatches.filter(m => (m.EventName || m.eventName || m["Event Name"]) === eventName);
+        // Kunin lahat ng matches sa specific event na ito
+        const eventMatches = globalMatches.filter(m => m.EventName === eventName);
         
         eventMatches.forEach(match => {
             if(match.statsBreakdown && Array.isArray(match.statsBreakdown)) {
                 match.statsBreakdown.forEach(stat => {
-                    if(stat.playerName === playerName && stat.teamName === teamName) {
-                        if(stat.type === 'Goal') totalG++;
-                        if(stat.type === 'Assist') totalA++;
-                        if(stat.type === 'Block') totalB++;
+                    // Titingnan natin kung tumugma ang pangalan ng player sa na-record sa score breakdown
+                    if(stat.team === teamName) {
+                        if(stat.goal === playerName) totalG++;
+                        if(stat.assist === playerName) totalA++;
+                        if(stat.block === playerName) totalB++;
                     }
                 });
             }
         });
 
-        return { G: totalG, A: totalA, B: totalB };
+        return { G: totalG, A: totalA, B: totalB, Total: (totalG + totalA + totalB) };
     }
 
     // TIMER LOGIC WITH HIDDEN CLOCK FOR MINUTE MARKS
