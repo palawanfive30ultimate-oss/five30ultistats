@@ -756,40 +756,50 @@
         </div>
 
        <div id="leaderboardsView" class="view-section">
-            <h2 class="events-page-header">Overall Rankings & Leaderboards</h2>
-            
-            <div class="event-tabs" style="margin-bottom: 20px; justify-content: center;">
-                <button class="tab-btn active" id="lbTabOverall" onclick="filterLeaderboard('Overall')">
-                    <i class="fas fa-globe"></i> Mixed (Overall)
-                </button>
-                <button class="tab-btn" id="lbTabMen" onclick="filterLeaderboard('Men')">
-                    <i class="fas fa-mars"></i> Men
-                </button>
-                <button class="tab-btn" id="lbTabWomen" onclick="filterLeaderboard('Women')">
-                    <i class="fas fa-venus"></i> Women
-                </button>
-            </div>
+  <h2 class="events-page-header">Overall Rankings & Leaderboards</h2>
+  
+  <!-- NEW: Tournament Filter Dropdown -->
+  <div class="filter-controls" style="justify-content: center; margin-bottom: 15px;">
+    <div class="filter-dropdown" style="max-width: 300px;">
+      <i class="fas fa-trophy"></i>
+      <select id="leaderboardEventFilter" onchange="applyLeaderboardFilters()">
+        <option value="all">Mixed (Overall Combined Tournaments)</option>
+        <!-- Options will be populated via JavaScript -->
+      </select>
+    </div>
+  </div>
 
-            <div class="dedicated-view-panel active-panel" style="background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
-                <table class="standings-table">
-                    <thead>
-                        <tr>
-                            <th class="rank-col">Rank</th>
-                            <th style="text-align: left;">Player Name</th>
-                            <th>Team</th>
-                            <th title="Goals">G</th>
-                            <th title="Assists">A</th>
-                            <th title="Blocks">B</th>
-                            <th title="Total Pts" style="color: #f59e0b;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardTableBody">
-                        <tr><td colspan="7" class="empty-text">Loading leaderboard...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+  <div class="event-tabs" style="margin-bottom: 20px; justify-content: center;">
+    <button class="tab-btn active" id="lbTabOverall" onclick="filterLeaderboard('Overall')">
+      <i class="fas fa-globe"></i> All Genders
+    </button>
+    <button class="tab-btn" id="lbTabMen" onclick="filterLeaderboard('Men')">
+      <i class="fas fa-mars"></i> Men
+    </button>
+    <button class="tab-btn" id="lbTabWomen" onclick="filterLeaderboard('Women')">
+      <i class="fas fa-venus"></i> Women
+    </button>
+  </div>
+  
+  <div class="dedicated-view-panel active-panel" style="background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+    <table class="standings-table">
+      <thead>
+        <tr>
+          <th class="rank-col">Rank</th>
+          <th style="text-align: left;">Player Name</th>
+          <th>Team</th>
+          <th title="Goals">G</th>
+          <th title="Assists">A</th>
+          <th title="Blocks">B</th>
+          <th title="Total Pts" style="color: #f59e0b;">Total</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardTableBody">
+        <tr><td colspan="7" class="empty-text">Loading leaderboard...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
         <div id="tournamentDetailView" class="view-section">
             <div class="section-header-row" style="margin-bottom: 20px;">
                 <button class="btn-edit" onclick="goBackToReferrer()" style="padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
@@ -1401,25 +1411,29 @@
     }
 
     async function fetchDashboardData() {
-        try {
-            const response = await fetch(APPS_SCRIPT_URL);
-            const result = await response.json();
-            if (result.success) {
-                globalEvents = result.events || [];
-                globalMatches = result.matches || [];
-                globalTeams = result.teams || [];
-                globalPlayers = result.players || [];
-                
-                renderEvents();
-                renderTeamEvents();
-                renderPlayerEvents();
-                renderHomeMatches(globalMatches);
-            }
-        } catch (error) {
-            console.error("Error loading DB: ", error);
-            document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color:#ef4444;">Error Loading.</div>';
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const result = await response.json();
+        if (result.success) {
+            globalEvents = result.events || [];
+            globalMatches = result.matches || [];
+            globalTeams = result.teams || [];
+            globalPlayers = result.players || [];
+            
+            renderEvents();
+            renderTeamEvents();
+            renderPlayerEvents();
+            renderHomeMatches(globalMatches);
+            
+            // NEW: Populate dropdown and render initial leaderboard
+            populateLeaderboardTournaments();
+            applyLeaderboardFilters();
         }
+    } catch (error) {
+        console.error("Error loading DB: ", error);
+        document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color:#ef4444;">Error Loading.</div>';
     }
+}
 
     function renderEvents() {
         const container = document.getElementById('eventListContainer');
@@ -2919,6 +2933,132 @@ async function handleSaveTeamLogo(e) {
     };
     
     reader.readAsDataURL(file);
+}
+
+// Ilagay ito sa taas malapit sa ibang let declarations
+let currentLeaderboardEvent = 'all';
+
+// 1. Function para i-load ang mga Tournaments sa Dropdown
+function populateLeaderboardTournaments() {
+    const select = document.getElementById('leaderboardEventFilter');
+    if (!select) return;
+    
+    // Default option
+    select.innerHTML = '<option value="all">Mixed (Overall Combined Tournaments)</option>';
+    
+    // I-loop ang globalEvents para idagdag ang mga available tournaments
+    globalEvents.forEach(evt => {
+        const option = document.createElement('option');
+        option.value = evt.EventName;
+        option.textContent = evt.EventName;
+        select.appendChild(option);
+    });
+}
+
+// 2. I-update ang function na filterLeaderboard
+function filterLeaderboard(category) {
+    if (category) currentLeaderboardFilter = category;
+    
+    // Update active button state para sa Gender Tabs
+    document.querySelectorAll('#leaderboardsView .tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (currentLeaderboardFilter === 'Overall') document.getElementById('lbTabOverall').classList.add('active');
+    else if (currentLeaderboardFilter === 'Men') document.getElementById('lbTabMen').classList.add('active');
+    else if (currentLeaderboardFilter === 'Women') document.getElementById('lbTabWomen').classList.add('active');
+
+    applyLeaderboardFilters();
+}
+
+// 3. Trigger pag may binago sa dropdown
+function applyLeaderboardFilters() {
+    currentLeaderboardEvent = document.getElementById('leaderboardEventFilter').value;
+    renderLeaderboardTable();
+}
+
+// 4. Main function para sa pag-calculate at render ng rankings
+function renderLeaderboardTable() {
+    const tbody = document.getElementById('leaderboardTableBody');
+    if (!tbody) return;
+
+    let filteredPlayers = globalPlayers;
+
+    // Filter by Event Name kung hindi 'all' ang napili
+    if (currentLeaderboardEvent !== 'all') {
+        filteredPlayers = filteredPlayers.filter(p => 
+            (p.EventName || p.eventName || p["Event Name"]) === currentLeaderboardEvent
+        );
+    }
+
+    // Filter by Gender Category
+    if (currentLeaderboardFilter !== 'Overall') {
+        filteredPlayers = filteredPlayers.filter(p => {
+            const gender = p.Gender || p.gender;
+            return currentLeaderboardFilter === 'Men' ? 
+                (gender === 'Men' || gender === 'Male') : 
+                (gender === 'Women' || gender === 'Female');
+        });
+    }
+
+    // I-group ang players para pagsamahin ang stats kung 'all' tournaments
+    let playerStatsMap = {};
+    
+    filteredPlayers.forEach(p => {
+        const pName = p.PlayerName || p.playerName || p["Player Name"];
+        if (!pName) return;
+
+        if (!playerStatsMap[pName]) {
+            playerStatsMap[pName] = {
+                name: pName,
+                // Kung 'all' tournaments ang view at nag-iba siya ng team, magpapakita ng "Multiple Teams", kung hindi yung current team
+                team: p.TeamName || p.teamName || p["Team Name"] || 'N/A',
+                goals: parseInt(p.Goals || 0),
+                assists: parseInt(p.Assists || 0),
+                blocks: parseInt(p.Blocks || 0)
+            };
+        } else {
+            playerStatsMap[pName].goals += parseInt(p.Goals || 0);
+            playerStatsMap[pName].assists += parseInt(p.Assists || 0);
+            playerStatsMap[pName].blocks += parseInt(p.Blocks || 0);
+            
+            // Marker kung naglaro sa magkaibang team
+            if (playerStatsMap[pName].team !== (p.TeamName || p.teamName || p["Team Name"])) {
+                playerStatsMap[pName].team = "Multiple Teams"; 
+            }
+        }
+    });
+
+    // Compute Total Points at i-convert map to array
+    let leaderboardData = [];
+    for (let name in playerStatsMap) {
+        let pData = playerStatsMap[name];
+        // Total formula: Pagsasama-samahin ang G, A, at B. Pwede mong baguhin ang multiplier kung may specific point system.
+        pData.total = pData.goals + pData.assists + pData.blocks; 
+        leaderboardData.push(pData);
+    }
+
+    // Sort players (Descending order ng Total Points)
+    leaderboardData.sort((a, b) => b.total - a.total || b.goals - a.goals || b.assists - a.assists);
+
+    // I-render ang HTML table
+    if (leaderboardData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-text">No player data found for this filter.</td></tr>';
+        return;
+    }
+
+    let html = '';
+    leaderboardData.forEach((player, index) => {
+        html += `
+        <tr>
+            <td class="rank-col">${index + 1}</td>
+            <td style="text-align: left; font-weight: bold;">${player.name}</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">${player.team}</td>
+            <td style="font-weight: 600;">${player.goals}</td>
+            <td style="font-weight: 600;">${player.assists}</td>
+            <td style="font-weight: 600;">${player.blocks}</td>
+            <td style="color: #f59e0b; font-weight: 900;">${player.total}</td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html;
 }
 
 </script>
