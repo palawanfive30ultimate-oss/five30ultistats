@@ -1609,11 +1609,11 @@
                     let scoreB = parseInt(m.ScoreB) || 0;
 
                     if (m.TeamA === tName) {
-                        if (scoreA > scoreB) { w++; pts += 1; } // Win = 1 point
-                        else if (scoreA < scoreB) { l++; }      // Loss = 0 points
+                        if (scoreA > scoreB) { w++; pts += 2; } // Win = 1 point
+                        else if (scoreA < scoreB) { l++; pts -= 1 }      // Loss = 0 points
                     } else if (m.TeamB === tName) {
-                        if (scoreB > scoreA) { w++; pts += 1; } 
-                        else if (scoreB < scoreA) { l++; }
+                        if (scoreB > scoreA) { w++; pts += 2; } 
+                        else if (scoreB < scoreA) { l++; pts -= 1 }
                     }
                 }
             });
