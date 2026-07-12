@@ -1356,7 +1356,7 @@
     </div>
 
    <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBhanjhlYoL6bgX6SdZs32flouHNvDbv0wvy62Bf212FiCnSnpEScuUTDLMzFgqADi/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygL6OF3wkZnCNH7rhhSErkVDiJQBS4sRq4IWw7SvMhaa3OvrhEwiDSpA_mml_g7bP3/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1380,6 +1380,7 @@
 
     // LEADERBOARD TRACKER
     let currentLeaderboardFilter = 'Overall'; // 'Overall', 'Men', 'Women'
+    let currentLeaderboardEvent = 'all';
 
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('backToTopBtn');
@@ -1411,29 +1412,28 @@
     }
 
     async function fetchDashboardData() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        const result = await response.json();
-        if (result.success) {
-            globalEvents = result.events || [];
-            globalMatches = result.matches || [];
-            globalTeams = result.teams || [];
-            globalPlayers = result.players || [];
-            
-            renderEvents();
-            renderTeamEvents();
-            renderPlayerEvents();
-            renderHomeMatches(globalMatches);
-            
-            // NEW: Populate dropdown and render initial leaderboard
-            populateLeaderboardTournaments();
-            applyLeaderboardFilters();
+        try {
+            const response = await fetch(APPS_SCRIPT_URL);
+            const result = await response.json();
+            if (result.success) {
+                globalEvents = result.events || [];
+                globalMatches = result.matches || [];
+                globalTeams = result.teams || [];
+                globalPlayers = result.players || [];
+                
+                renderEvents();
+                renderTeamEvents();
+                renderPlayerEvents();
+                renderHomeMatches(globalMatches);
+                
+                populateLeaderboardTournaments();
+                applyLeaderboardFilters();
+            }
+        } catch (error) {
+            console.error("Error loading DB: ", error);
+            document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color:#ef4444;">Error Loading.</div>';
         }
-    } catch (error) {
-        console.error("Error loading DB: ", error);
-        document.getElementById('eventListContainer').innerHTML = '<div class="empty-text" style="color:#ef4444;">Error Loading.</div>';
     }
-}
 
     function renderEvents() {
         const container = document.getElementById('eventListContainer');
@@ -1600,7 +1600,7 @@
         localStorage.setItem('f30_active_view', referrerView);
     }
 
-  function renderEventSpecificStandings(eventName) {
+    function renderEventSpecificStandings(eventName) {
         const container = document.getElementById('eventTeamsContainer');
         const evtTeams = globalTeams.filter(t => (t.EventName || t.eventName || t["Event Name"]) === eventName);
         
@@ -1609,13 +1609,11 @@
             return;
         }
 
-        // 1. CALCULATE WINS, LOSSES, AND POINTS DYNAMICALLY FROM ENDED MATCHES
         let standingsData = evtTeams.map(t => {
             let tName = t.TeamName || t.teamName || t["Team Name"] || "Unknown Team";
             let w = 0, l = 0, pts = 0;
 
             globalMatches.forEach(m => {
-                // 🛑 DITO YUNG LOGIC: Bibilangin lang kapag 'Round Robin' (O kapag blank/undefined sa lumang database records)
                 let isRoundRobin = (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '');
 
                 if (m.EventName === eventName && m.matchStatus === 'Ended' && isRoundRobin) {
@@ -1623,8 +1621,8 @@
                     let scoreB = parseInt(m.ScoreB) || 0;
 
                     if (m.TeamA === tName) {
-                        if (scoreA > scoreB) { w++; pts += 2; } // Win = 1 point
-                        else if (scoreA < scoreB) { l++; pts -= 1 }      // Loss = 0 points
+                        if (scoreA > scoreB) { w++; pts += 2; } 
+                        else if (scoreA < scoreB) { l++; pts -= 1 } 
                     } else if (m.TeamB === tName) {
                         if (scoreB > scoreA) { w++; pts += 2; } 
                         else if (scoreB < scoreA) { l++; pts -= 1 }
@@ -1635,7 +1633,6 @@
             return { ...t, displayTeamName: tName, w, l, pts };
         });
 
-        // Group by division
         let groupedDivisions = {};
         standingsData.forEach(t => {
             let div = t.Category || t.category || "Mixed Division";
@@ -1662,38 +1659,27 @@
                 </thead>
                 <tbody>`;
             
-            // 2. SORT TEAMS: Highest Points & Wins First, then Head-to-Head Tiebreaker
-let sortedTeams = groupedDivisions[division].sort((a, b) => {
-    // 1st Priority: Points
-    if (b.pts !== a.pts) return b.pts - a.pts;
-    
-    // 2nd Priority: Total Wins
-    if (b.w !== a.w) return b.w - a.w;
+            let sortedTeams = groupedDivisions[division].sort((a, b) => {
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                if (b.w !== a.w) return b.w - a.w;
 
-    // 3rd Priority: Head-to-Head (Sino ang nanalo sa match nila sa Round Robin)
-    let h2hMatch = globalMatches.find(m => 
-        m.EventName === eventName && 
-        m.matchStatus === 'Ended' && 
-        (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '') &&
-        ((m.TeamA === a.displayTeamName && m.TeamB === b.displayTeamName) || 
-         (m.TeamA === b.displayTeamName && m.TeamB === a.displayTeamName))
-    );
+                let h2hMatch = globalMatches.find(m => 
+                    m.EventName === eventName && 
+                    m.matchStatus === 'Ended' && 
+                    (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '') &&
+                    ((m.TeamA === a.displayTeamName && m.TeamB === b.displayTeamName) || 
+                     (m.TeamA === b.displayTeamName && m.TeamB === a.displayTeamName))
+                );
 
-    if (h2hMatch) {
-        let scoreA = parseInt(h2hMatch.ScoreA) || 0;
-        let scoreB = parseInt(h2hMatch.ScoreB) || 0;
-        
-        // Kung si Team 'a' ay ang TeamA sa recorded match
-        if (h2hMatch.TeamA === a.displayTeamName) {
-            return scoreB - scoreA; // Pag mas mataas ang scoreA, aangat si 'a'
-        } else {
-        // Kung si Team 'a' ay ang TeamB sa recorded match
-            return scoreA - scoreB; // Pag mas mataas ang scoreB, aangat si 'a'
-        }
-    }
-    
-    return 0; // Pag walang nahanap na head-to-head o draw ang laban nila
-});
+                if (h2hMatch) {
+                    let scoreA = parseInt(h2hMatch.ScoreA) || 0;
+                    let scoreB = parseInt(h2hMatch.ScoreB) || 0;
+                    if (h2hMatch.TeamA === a.displayTeamName) return scoreB - scoreA; 
+                    else return scoreA - scoreB;
+                }
+                
+                return 0; 
+            });
 
             sortedTeams.forEach((t, index) => {
                 const teamLogo = t.LogoUrl || "https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=150&q=80";
@@ -1702,13 +1688,10 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
                         <td class="rank-col">${index + 1}</td>
                         <td class="team-logo-cell" style="position: relative; display: flex; align-items: center; gap: 8px;">
                             <img src="${teamLogo}" class="table-team-logo" alt="Logo">
-                            
                             ${isAdmin ? `
                             <button class="btn-edit-logo" style="background: rgba(59, 48, 118, 0.7); color: white; border: none; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" onclick="event.stopPropagation(); openTeamLogoModal('${t.displayTeamName.replace(/'/g, "\\'")}')" title="Upload Logo">
                                 <i class="fas fa-camera"></i>
-                            </button>
-                            ` : ''}
-                            
+                            </button>` : ''}
                             <span style="font-weight: 700;">${t.displayTeamName}</span>
                         </td>
                         <td>${t.w}</td>
@@ -1742,7 +1725,6 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
             groupedDivisions[div].push(t);
         });
 
-        // Wrapper para sa Listahan ng Teams at Roster Detail
         let html = '<div id="teamsRosterList">'; 
         
         for (let division in groupedDivisions) {
@@ -1750,7 +1732,6 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
             
             groupedDivisions[division].forEach(t => {
                 const currentTeamName = t.TeamName || t.teamName || t["Team Name"] || "Unnamed Team";
-                
                 html += `
                 <div class="team-list-card" onclick="viewTeamRoster('${currentTeamName.replace(/'/g, "\\'")}', '${eventName.replace(/'/g, "\\'")}')" style="background: rgba(255, 255, 255, 0.05); padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: background 0.3s;">
                     <span style="font-weight: 600; color: #ffffff;"><i class="fas fa-users" style="color:#f9385b; margin-right:10px;"></i> ${currentTeamName}</span>
@@ -1759,8 +1740,6 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
             });
         }
         html += '</div>';
-        
-        // Container para sa Actual Players
         html += '<div id="teamRosterDetail" style="display: none;"></div>';
         
         container.innerHTML = html;
@@ -1821,7 +1800,6 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
         document.getElementById('teamsRosterList').style.display = 'block';
     }
 
-    // MATCH CARD RENDERER (UPDATED)
     function renderEventSpecificMatches(eventName) {
         const container = document.getElementById('eventMatchesContainer');
         let html = '';
@@ -1831,7 +1809,6 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
             if (m.EventName !== eventName) return;
             hasMatches = true;
 
-            // Updated Status Logic
             let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
             let statClass = mStatus === "Ended" ? "" : (mStatus === "Ongoing" ? "live-status-blinking" : "upcoming");
 
@@ -1866,7 +1843,7 @@ let sortedTeams = groupedDivisions[division].sort((a, b) => {
 
     // --- NEW MATCH SCORING & STATS FUNCTIONS --- //
     
-function openMatchStats(index) {
+    function openMatchStats(index) {
         currentMatchStatsIndex = index;
         const m = globalMatches[index];
         if(!m) return;
@@ -1883,56 +1860,66 @@ function openMatchStats(index) {
         document.getElementById('btnSelectTeamA').innerText = m.TeamA;
         document.getElementById('btnSelectTeamB').innerText = m.TeamB;
 
-        // Auto-set UI Status Buttons based on database info
         let currentStatus = m.matchStatus || "Upcoming";
         changeMatchStatus(currentStatus);
 
         switchStatsTeam('A');
         renderStatsBreakdown();
 
-        // ==========================================
-        // 🔥 ADMIN VIEW CHECKER & RESTRICTIONS
-        // ==========================================
+        // ----------------------------------------------------
+        // INITIALIZE OR RESTORE PER-MATCH TIMER STATE
+        // ----------------------------------------------------
+        m.timerState = m.timerState || {
+            timeLeft: 60 * 60,
+            hiddenClock: 0,
+            isRunning: false,
+            intervalId: null,
+            defaultMinutes: 60
+        };
+
+        updateTimerDisplay(); // Render specific match timer
+        let timerBtn = document.getElementById('startTimerBtn');
+        if (timerBtn) {
+            if(m.timerState.isRunning) {
+                timerBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                timerBtn.style.backgroundColor = '#f59e0b';
+            } else {
+                timerBtn.innerHTML = '<i class="fas fa-play"></i> Start';
+                timerBtn.style.backgroundColor = 'var(--live-green)';
+            }
+        }
+        // ----------------------------------------------------
+
         let isAdmin = checkAdminRole();
 
-        // 1. Itago ang Save/End Match buttons
         let adminSaveContainer = document.getElementById('adminOnlyMatchSave');
         if (adminSaveContainer) adminSaveContainer.style.display = isAdmin ? 'flex' : 'none';
 
-        // 2. I-disable ang Status buttons para maging 'read-only' sa guest
         let statusWrapper = document.getElementById('matchStatusWrapper');
         if (statusWrapper) {
             statusWrapper.style.pointerEvents = isAdmin ? 'auto' : 'none';
             statusWrapper.style.opacity = isAdmin ? '1' : '0.8'; 
         }
         
-        // 3. I-disable ang Game Phase selector
         let phaseSelect = document.getElementById('gamePhaseSelect');
         if (phaseSelect) phaseSelect.disabled = !isAdmin;
 
-        // 4. Itago ang lahat ng maliliit na scoring at timer start buttons
         document.querySelectorAll('.admin-stat-btn').forEach(btn => {
             btn.style.display = isAdmin ? '' : 'none';
         });
 
-        // 5. Itago ang Timer Controls (Yung -5 min, +5 min, reset)
         let timerControls = document.getElementById('adminTimerControls');
         if (timerControls) timerControls.style.display = isAdmin ? 'flex' : 'none';
 
-        // 6. Itago ang buong Play-by-Play recording panel
         let playByPlayPanel = document.getElementById('adminPlayByPlayPanel');
         if (playByPlayPanel) playByPlayPanel.style.display = isAdmin ? 'block' : 'none';
-        // ==========================================
 
         openModal('matchStatsModal');
     }
 
-    // MATCH STATUS CHANGER
-   function changeMatchStatus(newStatus) {
+    function changeMatchStatus(newStatus) {
         const m = globalMatches[currentMatchStatsIndex];
         m.matchStatus = newStatus;
-        
-        // Update UI Buttons
         document.getElementById('btnStatusUpcoming').classList.toggle('active', newStatus === 'Upcoming');
         document.getElementById('btnStatusOngoing').classList.toggle('active', newStatus === 'Ongoing');
         document.getElementById('btnStatusEnded').classList.toggle('active', newStatus === 'Ended');
@@ -1986,12 +1973,12 @@ function openMatchStats(index) {
         const m = globalMatches[currentMatchStatsIndex];
         const teamName = currentActionTeam === 'A' ? m.TeamA : m.TeamB;
         
-        // Kukunin ang kasalukuyang minute mark base sa hidden game clock
-        const currentMinute = Math.floor(hiddenGameClock / 60) + 1;
+        // Gamitin ang specific clock para sa kasalukuyang match
+        const currentMinute = Math.floor((m.timerState ? m.timerState.hiddenClock : 0) / 60) + 1;
 
         const statEntry = {
             team: teamName,
-            side: currentActionTeam, // 'A' or 'B' para sa left/right UI
+            side: currentActionTeam, 
             minute: currentMinute,
             goal: goal || "-",
             assist: assist || "-",
@@ -2007,21 +1994,17 @@ function openMatchStats(index) {
         renderStatsBreakdown();
     }
 
-   function renderStatsBreakdown() {
+    function renderStatsBreakdown() {
         const container = document.getElementById('statsBreakdownContainer');
         if(tempMatchStats.length === 0) {
             container.innerHTML = '<div class="empty-text" style="padding: 10px 0;">No stats recorded for this match yet.</div>';
             return;
         }
 
-        // 🔥 I-check kung admin bago i-render ang X button
         let isAdmin = checkAdminRole();
-
-        // CHAT-STYLE UI FOR SCORE BREAKDOWN
         let html = '<div style="display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 10px;">';
 
         tempMatchStats.forEach((stat, idx) => {
-            // Kung Team A = Left (flex-start), Kung Team B = Right (flex-end)
             let alignment = stat.side === 'A' ? 'flex-start' : 'flex-end';
             let bgStyle = stat.side === 'A' ? 'background: rgba(249, 56, 91, 0.15); border-left: 3px solid #f9385b;' : 'background: rgba(74, 105, 189, 0.15); border-right: 3px solid #4a69bd;';
             let textAlign = stat.side === 'A' ? 'left' : 'right';
@@ -2031,7 +2014,6 @@ function openMatchStats(index) {
             if(stat.assist && stat.assist !== "-") details.push(`🤝 <b>${stat.assist}</b> (Assist)`);
             if(stat.block && stat.block !== "-") details.push(`🛡️ <b>${stat.block}</b> (Block)`);
 
-            // 🔥 Dito natin sasalain yung Delete (X) button
             let deleteButton = '';
             if (isAdmin) {
                 deleteButton = `
@@ -2055,7 +2037,7 @@ function openMatchStats(index) {
 
         html += `</div>`;
         container.innerHTML = html;
-        container.scrollTop = container.scrollHeight; // Auto-scroll down
+        container.scrollTop = container.scrollHeight;
     }
 
     function removeStatEntry(idx) {
@@ -2063,31 +2045,24 @@ function openMatchStats(index) {
         renderStatsBreakdown();
     }
 
-    
-
     function saveMatchStatsToDatabase(matchId) {
-    // ... logic mo sa pagkuha ng scores at breakdown
-    let matchStatus = 'Ended'; 
-    let gamePhaseVal = document.getElementById('gamePhaseSelect').value; // KUNIN ANG VALUE NG DROPDOWN
+        let matchStatus = 'Ended'; 
+        let gamePhaseVal = document.getElementById('gamePhaseSelect').value; 
 
-    google.script.run
-        .withSuccessHandler(function(response) {
-            console.log("Match updated!");
-            // ... reload data mo
-        })
-        // Ipasa ang gamePhaseVal bilang argumento sa GAS function mo
-        .updateMatchStats(matchId, scoreA, scoreB, currentStatsBreakdown, matchStatus, gamePhaseVal); 
-}
+        google.script.run
+            .withSuccessHandler(function(response) {
+                console.log("Match updated!");
+            })
+            .updateMatchStats(matchId, scoreA, scoreB, currentStatsBreakdown, matchStatus, gamePhaseVal); 
+    }
 
-
-  async function saveMatchStats(isEnding = false) {
+    async function saveMatchStats(isEnding = false) {
         const m = globalMatches[currentMatchStatsIndex];
         
         m.ScoreA = parseInt(document.getElementById('scoreValA').innerText);
         m.ScoreB = parseInt(document.getElementById('scoreValB').innerText);
         m.statsBreakdown = [...tempMatchStats];
         
-        // 1. KUNIN ANG GAME PHASE MULA SA DROPDOWN
         let phaseSelect = document.getElementById('gamePhaseSelect');
         if (phaseSelect) {
             m.gamePhase = phaseSelect.value;
@@ -2095,7 +2070,6 @@ function openMatchStats(index) {
             m.gamePhase = m.gamePhase || 'Round Robin'; 
         }
         
-        // Pag pinindot ang End Match button, idedeklara agad ng system ang nanalo base sa score
         if(isEnding) {
             m.matchStatus = 'Ended';
             if(m.ScoreA > m.ScoreB) m.winner = m.TeamA;
@@ -2106,7 +2080,6 @@ function openMatchStats(index) {
         renderEventSpecificMatches(m.EventName);
         renderHomeMatches(globalMatches);
         
-        // DITO AUTOMATIC NA MAGRERENDER ANG STANDINGS PARA UPDATED AGAD
         if(referrerView === 'teamsView' || currentOpenEvent) {
              renderEventSpecificStandings(m.EventName); 
         }
@@ -2124,7 +2097,7 @@ function openMatchStats(index) {
                 statsBreakdown: m.statsBreakdown, 
                 matchStatus: m.matchStatus,
                 winner: m.winner || "",
-                gamePhase: m.gamePhase // <--- 2. IPAPASA NA SA GOOGLE SHEETS
+                gamePhase: m.gamePhase
             };
 
             await fetch(APPS_SCRIPT_URL, {
@@ -2139,7 +2112,6 @@ function openMatchStats(index) {
             alert("Nai-save sa screen pero nagka-error sa pag-send sa database.");
         }
     }
-    // --- END OF MATCH SCORING LOGIC --- //
 
     function renderHomeMatches(matches) {
         const container = document.getElementById('liveMatchesContainer');
@@ -2237,8 +2209,6 @@ function openMatchStats(index) {
         renderEventSpecificStandings(currentOpenEvent.EventName);
         renderEventSpecificPlayers(currentOpenEvent.EventName);
     }
-
-    
 
     function openEditPlayerModal(playerName, teamName, eventName) {
         let player = globalPlayers.find(p => 
@@ -2408,7 +2378,6 @@ function openMatchStats(index) {
         openModal('addPlayerModal');
     }
 
-    // UPDATED FOR SEPARATE MEN AND WOMEN BULK ROSTER
     async function handleAddPlayer(e) {
         e.preventDefault();
         const btn = e.target.querySelector('button[type="submit"]');
@@ -2417,7 +2386,6 @@ function openMatchStats(index) {
         btn.disabled = true;
 
         const selectedTeam = document.getElementById('playerTeamInput').value;
-        // GAGAWA TAYO NG DALAWANG TEXT AREA SA HTML: bulkMenPlayersInput at bulkWomenPlayersInput
         const menText = document.getElementById('bulkMenPlayersInput')?.value || "";
         const womenText = document.getElementById('bulkWomenPlayersInput')?.value || "";
         
@@ -2563,7 +2531,6 @@ function openMatchStats(index) {
         localStorage.setItem('f30_active_view', viewId);
         localStorage.setItem('f30_active_tab', clickedTab.id);
         
-        // Pag pinindot ang leaderboards tab, i-render ulit by default 'Overall'
         if(viewId === 'leaderboardsView') {
             filterLeaderboard('Overall');
         }
@@ -2580,82 +2547,15 @@ function openMatchStats(index) {
         document.getElementById(upcomingId).classList.toggle('active', mode === 'upcoming');
     }
 
-    // LEADERBOARDS GENDER FILTER
-   // LEADERBOARDS GENDER FILTER AT RENDERER
-    function filterLeaderboard(gender) {
-        currentLeaderboardFilter = gender;
+    function filterLeaderboard(category) {
+        if (category) currentLeaderboardFilter = category;
         
-        // Update Tab UI Colors
-        document.getElementById('lbTabOverall').classList.toggle('active', gender === 'Overall');
-        document.getElementById('lbTabMen').classList.toggle('active', gender === 'Men');
-        document.getElementById('lbTabWomen').classList.toggle('active', gender === 'Women');
+        document.querySelectorAll('#leaderboardsView .tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (currentLeaderboardFilter === 'Overall') document.getElementById('lbTabOverall').classList.add('active');
+        else if (currentLeaderboardFilter === 'Men') document.getElementById('lbTabMen').classList.add('active');
+        else if (currentLeaderboardFilter === 'Women') document.getElementById('lbTabWomen').classList.add('active');
 
-        const tbody = document.getElementById('leaderboardTableBody');
-        
-        if (globalPlayers.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-text">No players found in the database.</td></tr>`;
-            return;
-        }
-
-        // Kukunin natin lahat ng players at i-cocompute ang stats nila gamit yung bagong function
-        let computedPlayers = globalPlayers.map(p => {
-            const pName = p.PlayerName || p.playerName || p["Player Name"];
-            const tName = p.TeamName || p.teamName || p["Team Name"];
-            const eName = p.EventName || p.eventName || p["Event Name"];
-            
-            const stats = getPlayerTotalStats(pName, tName, eName);
-            
-            return {
-                name: pName,
-                team: tName,
-                gender: p.gender || 'Unknown',
-                stats: stats
-            };
-        });
-
-        // Filter by gender
-        if (gender !== 'Overall') {
-            computedPlayers = computedPlayers.filter(p => p.gender === gender);
-        }
-
-        // Remove players na 0 ang total points para hindi kalat sa leaderboard
-        computedPlayers = computedPlayers.filter(p => p.stats.Total > 0);
-
-        // Sorting: Priority ang Total Pts, next ang Goals, next ang Assists
-        computedPlayers.sort((a, b) => {
-            if (b.stats.Total !== a.stats.Total) return b.stats.Total - a.stats.Total;
-            if (b.stats.G !== a.stats.G) return b.stats.G - a.stats.G;
-            return b.stats.A - a.stats.A;
-        });
-
-        // Render to HTML Table
-        if (computedPlayers.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-text">No stats recorded yet for this category. Start adding scores!</td></tr>`;
-            return;
-        }
-
-        let html = '';
-        computedPlayers.forEach((player, index) => {
-            // Lalagyan natin ng kulay yung top 3 ranks
-            let rankDisplay = index + 1;
-            if (index === 0) rankDisplay = `<i class="fas fa-medal" style="color: #fbbf24; font-size: 1.2rem;"></i>`;
-            else if (index === 1) rankDisplay = `<i class="fas fa-medal" style="color: #94a3b8; font-size: 1.2rem;"></i>`;
-            else if (index === 2) rankDisplay = `<i class="fas fa-medal" style="color: #b45309; font-size: 1.2rem;"></i>`;
-
-            html += `
-                <tr>
-                    <td class="rank-col" style="font-weight: 900; font-size: 1.1rem;">${rankDisplay}</td>
-                    <td style="text-align: left; font-weight: bold;">${player.name}</td>
-                    <td style="color: var(--text-muted); font-size: 0.9rem;">${player.team}</td>
-                    <td style="font-weight: bold;">${player.stats.G}</td>
-                    <td style="font-weight: bold;">${player.stats.A}</td>
-                    <td style="font-weight: bold;">${player.stats.B}</td>
-                    <td style="font-weight: 900; color: #f59e0b; font-size: 1.1rem;">${player.stats.Total}</td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
+        applyLeaderboardFilters();
     }
 
     function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -2751,345 +2651,347 @@ function openMatchStats(index) {
         }
     }
 
-  function getPlayerTotalStats(playerName, teamName, eventName) {
-    let player = globalPlayers.find(p => 
-        (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
-        (p.TeamName || p.teamName || p["Team Name"]) === teamName &&
-        (p.EventName || p.eventName || p["Event Name"]) === eventName
-    );
+    function getPlayerTotalStats(playerName, teamName, eventName) {
+        let player = globalPlayers.find(p => 
+            (p.PlayerName || p.playerName || p["Player Name"]) === playerName &&
+            (p.TeamName || p.teamName || p["Team Name"]) === teamName &&
+            (p.EventName || p.eventName || p["Event Name"]) === eventName
+        );
+        
+        let totalG = parseInt(player?.Goals || 0);
+        let totalA = parseInt(player?.Assists || 0);
+        let totalB = parseInt(player?.Blocks || 0);
+
+        const eventMatches = globalMatches.filter(m => 
+            m.EventName === eventName && 
+            (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '')
+        );
+        
+        eventMatches.forEach(match => {
+            if(match.statsBreakdown && Array.isArray(match.statsBreakdown)) {
+                match.statsBreakdown.forEach(stat => {
+                    if(stat.team === teamName) {
+                        if(stat.goal === playerName) totalG++;
+                        if(stat.assist === playerName) totalA++;
+                        if(stat.block === playerName) totalB++;
+                    }
+                });
+            }
+        });
+
+        return { G: totalG, A: totalA, B: totalB, Total: (totalG + totalA + totalB) };
+    }
+
+    // ==========================================
+    // 🔥 PER-MATCH TIMER LOGIC FIX
+    // ==========================================
     
-    // Simulan natin sa manual stats na inedit ni admin kung meron man
-    let totalG = parseInt(player?.Goals || 0);
-    let totalA = parseInt(player?.Assists || 0);
-    let totalB = parseInt(player?.Blocks || 0);
-
-    // DITO ANG PAGBABAGO: I-filter para EventName na tugma AT "Round Robin" lang na gamePhase
-    const eventMatches = globalMatches.filter(m => 
-        m.EventName === eventName && 
-        m.gamePhase === 'Round Robin'
-    );
-    
-    eventMatches.forEach(match => {
-        if(match.statsBreakdown && Array.isArray(match.statsBreakdown)) {
-            match.statsBreakdown.forEach(stat => {
-                // Titingnan natin kung tumugma ang pangalan ng player sa na-record sa score breakdown
-                if(stat.team === teamName) {
-                    if(stat.goal === playerName) totalG++;
-                    if(stat.assist === playerName) totalA++;
-                    if(stat.block === playerName) totalB++;
-                }
-            });
-        }
-    });
-
-    return { G: totalG, A: totalA, B: totalB, Total: (totalG + totalA + totalB) };
-}
-
-    // TIMER LOGIC WITH HIDDEN CLOCK FOR MINUTE MARKS
-    let matchTimerInterval;
-    let matchTimeLeft = 60 * 60; 
-    let hiddenGameClock = 0; // Umaabante para sa 'Minute Mark' ng score breakdown
-    let isMatchTimerRunning = false;
-    let defaultMatchMinutes = 60;
-
     function updateTimerDisplay() {
-        let m = Math.floor(matchTimeLeft / 60);
-        let s = matchTimeLeft % 60;
+        if(currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if(!m || !m.timerState) return;
+
+        let minutes = Math.floor(m.timerState.timeLeft / 60);
+        let seconds = m.timerState.timeLeft % 60;
         let displayEl = document.getElementById('matchTimerDisplay');
         if(displayEl) {
-            displayEl.innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            displayEl.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
         }
     }
 
     function toggleMatchTimer() {
+        if(currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        
+        // Safety check kung wala pang timerState (initialized na dapat sa openMatchStats)
+        m.timerState = m.timerState || { timeLeft: 60 * 60, hiddenClock: 0, isRunning: false, intervalId: null, defaultMinutes: 60 };
+
         let btn = document.getElementById('startTimerBtn');
-        if (isMatchTimerRunning) {
-            clearInterval(matchTimerInterval);
-            btn.innerHTML = '<i class="fas fa-play"></i> Start';
-            btn.style.backgroundColor = 'var(--live-green)';
+
+        if (m.timerState.isRunning) {
+            clearInterval(m.timerState.intervalId);
+            m.timerState.isRunning = false;
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-play"></i> Start';
+                btn.style.backgroundColor = 'var(--live-green)';
+            }
         } else {
-            matchTimerInterval = setInterval(() => {
-                if (matchTimeLeft > 0) {
-                    matchTimeLeft--;
-                    hiddenGameClock++; // Tick pataas habang bumababa ang screen time
-                    updateTimerDisplay();
+            m.timerState.isRunning = true;
+            m.timerState.intervalId = setInterval(() => {
+                if (m.timerState.timeLeft > 0) {
+                    m.timerState.timeLeft--;
+                    m.timerState.hiddenClock++; 
+                    // Titingnan kung ang nakabukas sa screen ay ito mismong laban para mag-update ang timer sa labas
+                    if(currentMatchStatsIndex !== -1 && globalMatches[currentMatchStatsIndex] === m) {
+                        updateTimerDisplay();
+                    }
                 } else {
-                    clearInterval(matchTimerInterval);
-                    isMatchTimerRunning = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> Start';
-                    alert("Time's up!");
+                    clearInterval(m.timerState.intervalId);
+                    m.timerState.isRunning = false;
+                    
+                    if(currentMatchStatsIndex !== -1 && globalMatches[currentMatchStatsIndex] === m) {
+                        let btnEl = document.getElementById('startTimerBtn');
+                        if (btnEl) {
+                            btnEl.innerHTML = '<i class="fas fa-play"></i> Start';
+                            btnEl.style.backgroundColor = 'var(--live-green)';
+                        }
+                        alert("Time's up for the match!");
+                    }
                 }
             }, 1000);
-            btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-            btn.style.backgroundColor = '#f59e0b';
+            
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                btn.style.backgroundColor = '#f59e0b';
+            }
         }
-        isMatchTimerRunning = !isMatchTimerRunning;
     }
 
     function resetMatchTimer() {
-        clearInterval(matchTimerInterval);
-        isMatchTimerRunning = false;
-        hiddenGameClock = 0; // Reset na rin ang record time
+        if(currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if(!m || !m.timerState) return;
+
+        clearInterval(m.timerState.intervalId);
+        m.timerState.isRunning = false;
+        m.timerState.hiddenClock = 0; 
+        m.timerState.timeLeft = m.timerState.defaultMinutes * 60;
+        
         let btn = document.getElementById('startTimerBtn');
-        btn.innerHTML = '<i class="fas fa-play"></i> Start';
-        btn.style.backgroundColor = 'var(--live-green)';
-        matchTimeLeft = defaultMatchMinutes * 60;
+        if(btn) {
+            btn.innerHTML = '<i class="fas fa-play"></i> Start';
+            btn.style.backgroundColor = 'var(--live-green)';
+        }
+        
         updateTimerDisplay();
     }
 
     function adjustMatchTimer(minutes) {
-        matchTimeLeft += minutes * 60;
-        if (matchTimeLeft < 0) matchTimeLeft = 0;
+        if(currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if(!m || !m.timerState) return;
+        
+        m.timerState.timeLeft += minutes * 60;
+        if (m.timerState.timeLeft < 0) m.timerState.timeLeft = 0;
         updateTimerDisplay();
     }
     
     function setMatchTimerExact(minutes) {
-        defaultMatchMinutes = minutes;
+        if(currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if(!m) return;
+        
+        m.timerState = m.timerState || {};
+        m.timerState.defaultMinutes = minutes;
         resetMatchTimer();
     }
 
+    // ==========================================
+
     function renderLeaderboard(category = 'Overall') {
-  const container = document.getElementById('leaderboardContainer');
-  if(!container) return;
-  
-  // Update UI ng active tab button
-  const tabs = document.querySelectorAll('#leaderboardView .tab-btn');
-  tabs.forEach(btn => btn.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+      const container = document.getElementById('leaderboardContainer');
+      if(!container) return;
+      
+      const tabs = document.querySelectorAll('#leaderboardView .tab-btn');
+      tabs.forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
 
-  // I-filter ang 'globalPlayers' base sa category na pinili
-  let players = globalPlayers.filter(p => {
-    if (category === 'Overall') return true;
-    if (category === 'Mixed') return p.gender === 'Mixed'; // O i-adjust ayon sa DB logic mo
-    return p.gender && p.gender.toLowerCase() === category.toLowerCase();
-  });
+      let players = globalPlayers.filter(p => {
+        if (category === 'Overall') return true;
+        if (category === 'Mixed') return p.gender === 'Mixed'; 
+        return p.gender && p.gender.toLowerCase() === category.toLowerCase();
+      });
 
-  // I-compute ang total stat rating (e.g. Total = Goals + Assists + Blocks)
-  players.forEach(p => {
-    p.totalScore = (parseInt(p.Goals) || 0) + (parseInt(p.Assists) || 0) + (parseInt(p.Blocks) || 0);
-  });
+      players.forEach(p => {
+        p.totalScore = (parseInt(p.Goals) || 0) + (parseInt(p.Assists) || 0) + (parseInt(p.Blocks) || 0);
+      });
 
-  // I-sort mula pinakamataas (Highest to Lowest)
-  players.sort((a, b) => b.totalScore - a.totalScore);
+      players.sort((a, b) => b.totalScore - a.totalScore);
 
-  // Gawan ng Table HTML ang na-sort na Leaderboard
-  let html = `<table class="standings-table">
-                <tr>
-                  <th>Rank</th>
-                  <th>Player Name</th>
-                  <th>Team</th>
-                  <th>G</th>
-                  <th>A</th>
-                  <th>B</th>
-                  <th>Total</th>
-                </tr>`;
-  
-  if(players.length === 0) {
-     html += `<tr><td colspan="7" class="empty-text">Walang records para sa category na ito.</td></tr>`;
-  } else {
-    players.forEach((p, index) => {
-      html += `<tr>
-        <td class="rank-col">#${index + 1}</td>
-        <td style="font-weight: 700; color: white;">${p.playerName}</td>
-        <td style="color: var(--text-muted);">${p.teamName}</td>
-        <td>${p.Goals || 0}</td>
-        <td>${p.Assists || 0}</td>
-        <td>${p.Blocks || 0}</td>
-        <td style="font-weight:900; color:#f9385b;">${p.totalScore}</td>
-      </tr>`;
-    });
-  }
-  
-  html += '</table>';
-  container.innerHTML = html;
-}
-
-// Function para buksan ang Modal
-function openTeamLogoModal(teamName) {
-    document.getElementById('logoModalTeamName').innerText = teamName;
-    document.getElementById('logoUploadTeamName').value = teamName;
-    document.getElementById('teamLogoPreviewContainer').innerHTML = "Logo Preview"; // Reset preview
-    document.getElementById('teamLogoUpload').value = ""; // Clear file input
-    openModal('editTeamLogoModal');
-}
-
-// Function para i-process at i-save ang image
-async function handleSaveTeamLogo(e) {
-    e.preventDefault();
-    const teamName = document.getElementById('logoUploadTeamName').value;
-    const fileInput = document.getElementById('teamLogoUpload');
-    const btn = e.target.querySelector('button[type="submit"]');
-    
-    if (fileInput.files.length === 0) {
-        alert("Pumili muna ng image file para sa logo.");
-        return;
+      let html = `<table class="standings-table">
+                    <tr>
+                      <th>Rank</th>
+                      <th>Player Name</th>
+                      <th>Team</th>
+                      <th>G</th>
+                      <th>A</th>
+                      <th>B</th>
+                      <th>Total</th>
+                    </tr>`;
+      
+      if(players.length === 0) {
+         html += `<tr><td colspan="7" class="empty-text">Walang records para sa category na ito.</td></tr>`;
+      } else {
+        players.forEach((p, index) => {
+          html += `<tr>
+            <td class="rank-col">#${index + 1}</td>
+            <td style="font-weight: 700; color: white;">${p.playerName}</td>
+            <td style="color: var(--text-muted);">${p.teamName}</td>
+            <td>${p.Goals || 0}</td>
+            <td>${p.Assists || 0}</td>
+            <td>${p.Blocks || 0}</td>
+            <td style="font-weight:900; color:#f9385b;">${p.totalScore}</td>
+          </tr>`;
+        });
+      }
+      
+      html += '</table>';
+      container.innerHTML = html;
     }
 
-    const originalText = btn.innerText;
-    btn.innerText = "Uploading...";
-    btn.disabled = true;
+    function openTeamLogoModal(teamName) {
+        document.getElementById('logoModalTeamName').innerText = teamName;
+        document.getElementById('logoUploadTeamName').value = teamName;
+        document.getElementById('teamLogoPreviewContainer').innerHTML = "Logo Preview"; 
+        document.getElementById('teamLogoUpload').value = ""; 
+        openModal('editTeamLogoModal');
+    }
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    
-    // Kino-convert ang image para pwedeng i-send sa internet (Base64)
-    reader.onload = async function(eReader) {
-        const base64Data = eReader.target.result.split(',')[1];
+    async function handleSaveTeamLogo(e) {
+        e.preventDefault();
+        const teamName = document.getElementById('logoUploadTeamName').value;
+        const fileInput = document.getElementById('teamLogoUpload');
+        const btn = e.target.querySelector('button[type="submit"]');
         
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ 
-                    action: 'updateTeamLogo', // Kailangan idagdag ang action na 'to sa Google Apps Script mo later
-                    eventName: currentOpenEvent.EventName, 
-                    teamName: teamName,
-                    photoData: base64Data,
-                    photoName: file.name
-                })
-            });
-            
-            alert("Team Logo Successfully Updated! Paki-refresh ang dashboard para makita ang pagbabago.");
-            closeModal('editTeamLogoModal');
-            fetchDashboardData(); // Refresh the list
-            
-        } catch(err) {
-            console.error("Error uploading logo:", err);
-            alert("Nagkaroon ng error sa pag-upload. Check your connection.");
+        if (fileInput.files.length === 0) {
+            alert("Pumili muna ng image file para sa logo.");
+            return;
         }
+
+        const originalText = btn.innerText;
+        btn.innerText = "Uploading...";
+        btn.disabled = true;
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
         
-        btn.innerText = originalText;
-        btn.disabled = false;
-    };
-    
-    reader.readAsDataURL(file);
-}
-
-// Ilagay ito sa taas malapit sa ibang let declarations
-let currentLeaderboardEvent = 'all';
-
-// 1. Function para i-load ang mga Tournaments sa Dropdown
-function populateLeaderboardTournaments() {
-    const select = document.getElementById('leaderboardEventFilter');
-    if (!select) return;
-    
-    // Default option
-    select.innerHTML = '<option value="all">Mixed (Overall Combined Tournaments)</option>';
-    
-    // I-loop ang globalEvents para idagdag ang mga available tournaments
-    globalEvents.forEach(evt => {
-        const option = document.createElement('option');
-        option.value = evt.EventName;
-        option.textContent = evt.EventName;
-        select.appendChild(option);
-    });
-}
-
-// 2. I-update ang function na filterLeaderboard
-function filterLeaderboard(category) {
-    if (category) currentLeaderboardFilter = category;
-    
-    // Update active button state para sa Gender Tabs
-    document.querySelectorAll('#leaderboardsView .tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (currentLeaderboardFilter === 'Overall') document.getElementById('lbTabOverall').classList.add('active');
-    else if (currentLeaderboardFilter === 'Men') document.getElementById('lbTabMen').classList.add('active');
-    else if (currentLeaderboardFilter === 'Women') document.getElementById('lbTabWomen').classList.add('active');
-
-    applyLeaderboardFilters();
-}
-
-// 3. Trigger pag may binago sa dropdown
-function applyLeaderboardFilters() {
-    currentLeaderboardEvent = document.getElementById('leaderboardEventFilter').value;
-    renderLeaderboardTable();
-}
-
-// 4. Main function para sa pag-calculate at render ng rankings
-function renderLeaderboardTable() {
-    const tbody = document.getElementById('leaderboardTableBody');
-    if (!tbody) return;
-
-    let filteredPlayers = globalPlayers;
-
-    // Filter by Event Name kung hindi 'all' ang napili
-    if (currentLeaderboardEvent !== 'all') {
-        filteredPlayers = filteredPlayers.filter(p => 
-            (p.EventName || p.eventName || p["Event Name"]) === currentLeaderboardEvent
-        );
+        reader.onload = async function(eReader) {
+            const base64Data = eReader.target.result.split(',')[1];
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: 'updateTeamLogo', 
+                        eventName: currentOpenEvent.EventName, 
+                        teamName: teamName,
+                        photoData: base64Data,
+                        photoName: file.name
+                    })
+                });
+                
+                alert("Team Logo Successfully Updated! Paki-refresh ang dashboard para makita ang pagbabago.");
+                closeModal('editTeamLogoModal');
+                fetchDashboardData(); 
+                
+            } catch(err) {
+                console.error("Error uploading logo:", err);
+                alert("Nagkaroon ng error sa pag-upload. Check your connection.");
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+        };
+        
+        reader.readAsDataURL(file);
     }
 
-    // Filter by Gender Category
-    if (currentLeaderboardFilter !== 'Overall') {
-        filteredPlayers = filteredPlayers.filter(p => {
-            const gender = p.Gender || p.gender;
-            return currentLeaderboardFilter === 'Men' ? 
-                (gender === 'Men' || gender === 'Male') : 
-                (gender === 'Women' || gender === 'Female');
+    function populateLeaderboardTournaments() {
+        const select = document.getElementById('leaderboardEventFilter');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="all">Mixed (Overall Combined Tournaments)</option>';
+        
+        globalEvents.forEach(evt => {
+            const option = document.createElement('option');
+            option.value = evt.EventName;
+            option.textContent = evt.EventName;
+            select.appendChild(option);
         });
     }
 
-    // I-group ang players para pagsamahin ang stats kung 'all' tournaments
-    let playerStatsMap = {};
-    
-    filteredPlayers.forEach(p => {
-        const pName = p.PlayerName || p.playerName || p["Player Name"];
-        if (!pName) return;
+    function applyLeaderboardFilters() {
+        currentLeaderboardEvent = document.getElementById('leaderboardEventFilter').value;
+        renderLeaderboardTable();
+    }
 
-        if (!playerStatsMap[pName]) {
-            playerStatsMap[pName] = {
-                name: pName,
-                // Kung 'all' tournaments ang view at nag-iba siya ng team, magpapakita ng "Multiple Teams", kung hindi yung current team
-                team: p.TeamName || p.teamName || p["Team Name"] || 'N/A',
-                goals: parseInt(p.Goals || 0),
-                assists: parseInt(p.Assists || 0),
-                blocks: parseInt(p.Blocks || 0)
-            };
-        } else {
-            playerStatsMap[pName].goals += parseInt(p.Goals || 0);
-            playerStatsMap[pName].assists += parseInt(p.Assists || 0);
-            playerStatsMap[pName].blocks += parseInt(p.Blocks || 0);
-            
-            // Marker kung naglaro sa magkaibang team
-            if (playerStatsMap[pName].team !== (p.TeamName || p.teamName || p["Team Name"])) {
-                playerStatsMap[pName].team = "Multiple Teams"; 
-            }
+    function renderLeaderboardTable() {
+        const tbody = document.getElementById('leaderboardTableBody');
+        if (!tbody) return;
+
+        let filteredPlayers = globalPlayers;
+
+        if (currentLeaderboardEvent !== 'all') {
+            filteredPlayers = filteredPlayers.filter(p => 
+                (p.EventName || p.eventName || p["Event Name"]) === currentLeaderboardEvent
+            );
         }
-    });
 
-    // Compute Total Points at i-convert map to array
-    let leaderboardData = [];
-    for (let name in playerStatsMap) {
-        let pData = playerStatsMap[name];
-        // Total formula: Pagsasama-samahin ang G, A, at B. Pwede mong baguhin ang multiplier kung may specific point system.
-        pData.total = pData.goals + pData.assists + pData.blocks; 
-        leaderboardData.push(pData);
+        if (currentLeaderboardFilter !== 'Overall') {
+            filteredPlayers = filteredPlayers.filter(p => {
+                const gender = p.Gender || p.gender;
+                return currentLeaderboardFilter === 'Men' ? 
+                    (gender === 'Men' || gender === 'Male') : 
+                    (gender === 'Women' || gender === 'Female');
+            });
+        }
+
+        let playerStatsMap = {};
+        
+        filteredPlayers.forEach(p => {
+            const pName = p.PlayerName || p.playerName || p["Player Name"];
+            if (!pName) return;
+
+            if (!playerStatsMap[pName]) {
+                playerStatsMap[pName] = {
+                    name: pName,
+                    team: p.TeamName || p.teamName || p["Team Name"] || 'N/A',
+                    goals: parseInt(p.Goals || 0),
+                    assists: parseInt(p.Assists || 0),
+                    blocks: parseInt(p.Blocks || 0)
+                };
+            } else {
+                playerStatsMap[pName].goals += parseInt(p.Goals || 0);
+                playerStatsMap[pName].assists += parseInt(p.Assists || 0);
+                playerStatsMap[pName].blocks += parseInt(p.Blocks || 0);
+                
+                if (playerStatsMap[pName].team !== (p.TeamName || p.teamName || p["Team Name"])) {
+                    playerStatsMap[pName].team = "Multiple Teams"; 
+                }
+            }
+        });
+
+        let leaderboardData = [];
+        for (let name in playerStatsMap) {
+            let pData = playerStatsMap[name];
+            pData.total = pData.goals + pData.assists + pData.blocks; 
+            leaderboardData.push(pData);
+        }
+
+        leaderboardData.sort((a, b) => b.total - a.total || b.goals - a.goals || b.assists - a.assists);
+
+        if (leaderboardData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-text">No player data found for this filter.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        leaderboardData.forEach((player, index) => {
+            html += `
+            <tr>
+                <td class="rank-col">${index + 1}</td>
+                <td style="text-align: left; font-weight: bold;">${player.name}</td>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">${player.team}</td>
+                <td style="font-weight: 600;">${player.goals}</td>
+                <td style="font-weight: 600;">${player.assists}</td>
+                <td style="font-weight: 600;">${player.blocks}</td>
+                <td style="color: #f59e0b; font-weight: 900;">${player.total}</td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
     }
-
-    // Sort players (Descending order ng Total Points)
-    leaderboardData.sort((a, b) => b.total - a.total || b.goals - a.goals || b.assists - a.assists);
-
-    // I-render ang HTML table
-    if (leaderboardData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-text">No player data found for this filter.</td></tr>';
-        return;
-    }
-
-    let html = '';
-    leaderboardData.forEach((player, index) => {
-        html += `
-        <tr>
-            <td class="rank-col">${index + 1}</td>
-            <td style="text-align: left; font-weight: bold;">${player.name}</td>
-            <td style="font-size: 0.85rem; color: var(--text-muted);">${player.team}</td>
-            <td style="font-weight: 600;">${player.goals}</td>
-            <td style="font-weight: 600;">${player.assists}</td>
-            <td style="font-weight: 600;">${player.blocks}</td>
-            <td style="color: #f59e0b; font-weight: 900;">${player.total}</td>
-        </tr>`;
-    });
-
-    tbody.innerHTML = html;
-}
 
 </script>
 </body>
