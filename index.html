@@ -1356,7 +1356,7 @@
     </div>
 
    <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQQkLGR8WmatzrA1hAOF9Xb5s70FZ7ussJZpEvTRLr6jSvFB_VkFoBbwQekvIV4sca/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0tue6bV6-iLJ6uvJY6nyFsMsNOXbohUC1Ka3Y_LTeVzbvq4znsomEI7OYlHLxfvt/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1662,8 +1662,38 @@
                 </thead>
                 <tbody>`;
             
-            // 2. SORT TEAMS: Highest Points & Wins First
-            let sortedTeams = groupedDivisions[division].sort((a, b) => b.pts - a.pts || b.w - a.w);
+            // 2. SORT TEAMS: Highest Points & Wins First, then Head-to-Head Tiebreaker
+let sortedTeams = groupedDivisions[division].sort((a, b) => {
+    // 1st Priority: Points
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    
+    // 2nd Priority: Total Wins
+    if (b.w !== a.w) return b.w - a.w;
+
+    // 3rd Priority: Head-to-Head (Sino ang nanalo sa match nila sa Round Robin)
+    let h2hMatch = globalMatches.find(m => 
+        m.EventName === eventName && 
+        m.matchStatus === 'Ended' && 
+        (!m.gamePhase || m.gamePhase === 'Round Robin' || m.gamePhase.trim() === '') &&
+        ((m.TeamA === a.displayTeamName && m.TeamB === b.displayTeamName) || 
+         (m.TeamA === b.displayTeamName && m.TeamB === a.displayTeamName))
+    );
+
+    if (h2hMatch) {
+        let scoreA = parseInt(h2hMatch.ScoreA) || 0;
+        let scoreB = parseInt(h2hMatch.ScoreB) || 0;
+        
+        // Kung si Team 'a' ay ang TeamA sa recorded match
+        if (h2hMatch.TeamA === a.displayTeamName) {
+            return scoreB - scoreA; // Pag mas mataas ang scoreA, aangat si 'a'
+        } else {
+        // Kung si Team 'a' ay ang TeamB sa recorded match
+            return scoreA - scoreB; // Pag mas mataas ang scoreB, aangat si 'a'
+        }
+    }
+    
+    return 0; // Pag walang nahanap na head-to-head o draw ang laban nila
+});
 
             sortedTeams.forEach((t, index) => {
                 const teamLogo = t.LogoUrl || "https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=150&q=80";
