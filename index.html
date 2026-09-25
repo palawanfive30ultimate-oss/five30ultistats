@@ -686,6 +686,42 @@
     border-color: #ff4655;
 }
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+/* Responsive adjustments para sa Mobile Phones */
+@media screen and (max-width: 768px) {
+    .vct-match-row {
+        flex-direction: column; /* Gagawing patayo ang elements */
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .match-col {
+        width: 100% !important; /* Para sakop ang buong lapad ng screen */
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .time-col {
+        border-bottom: 1px solid #2a2a2a;
+        padding-bottom: 8px;
+    }
+
+    .teams-wrapper {
+        gap: 10px;
+    }
+
+    .team-name {
+        font-size: 1.1rem; /* Papaliitin nang konti ang font sa phone */
+        width: auto;
+    }
+
+    .action-col {
+        margin-top: 8px;
+        align-items: center !important;
+    }
+}
+
     </style>
 </head>
 
@@ -2539,46 +2575,52 @@
     // ==========================================
     // 8. MATCHES & MATCH STATS SCORING
     // ==========================================
-   function renderEventSpecificMatches(eventName) {
+  function renderEventSpecificMatches(eventName) {
     const container = document.getElementById('eventMatchesContainer');
     let html = '';
     let hasMatches = false;
+
+    // PALITAN ITO NG TOTOONG LOGIC MO KUNG PAANO MO NALALAMAN KUNG ADMIN
+    // Example: const isAdmin = localStorage.getItem('userRole') === 'admin';
+    const isAdmin = false; 
 
     globalMatches.forEach((m, index) => {
         if (m.EventName !== eventName) return;
         hasMatches = true;
 
-        // Status checking (keep natin yung logic mo)
         let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
-        // Simplified class naming para sa bagong CSS
         let statClass = mStatus === "Ended" ? "ended" : (mStatus === "Ongoing" ? "ongoing live-status-blinking" : "upcoming");
 
-        // Ito na yung bagong pahalang na VCT-style layout
+        // Gagawa tayo ng condition para sa button
+        let buttonHtml = '';
+        if (isAdmin) {
+            buttonHtml = `
+                <button class="enter-stats-btn" onclick="openMatchStats(${index})">
+                    <i class="fas fa-clipboard-list"></i> Enter Stats
+                </button>
+            `;
+        }
+
         html += `
             <div class="vct-match-row">
-                <!-- Column 1: Time/Date -->
                 <div class="match-col time-col">
-                    <span class="m-date">${m.Date || 'TBA'}</span> <!-- Idinagdag ko in case may Date variable ka -->
+                    <span class="m-date">${m.Date || 'TBA'}</span>
                     <span class="m-time">${m.Time || 'TBA'}</span>
                     <span class="m-tz">PST</span>
                 </div>
 
-                <!-- Column 2: Matchup (Gitna) -->
                 <div class="match-col matchup-col">
                     <span class="m-category">${m.Category || 'Match'}</span>
                     <div class="teams-wrapper">
                         <span class="team-name">${m.TeamA}</span>
-                        <span class="vs-text">${m.ScoreA || '-'} : ${m.ScoreB || '-'}</span> <!-- Inilagay ko dito ang score kung gusto mo makita agad -->
+                        <span class="vs-text">${m.ScoreA || '-'} : ${m.ScoreB || '-'}</span>
                         <span class="team-name">${m.TeamB}</span>
                     </div>
                 </div>
 
-                <!-- Column 3: Action & Status -->
                 <div class="match-col action-col">
                     <span class="m-status ${statClass}" style="${mStatus==='Ongoing' ? 'color:#ff4757;' : ''}">${mStatus.toUpperCase()}</span>
-                    <button class="enter-stats-btn" onclick="openMatchStats(${index})">
-                        <i class="fas fa-clipboard-list"></i> Enter Stats
-                    </button>
+                    ${buttonHtml} <!-- Dito lalabas ang button KUNG admin lang -->
                 </div>
             </div>
         `;
