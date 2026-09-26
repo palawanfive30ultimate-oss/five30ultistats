@@ -2582,59 +2582,57 @@
     // ==========================================
     // 8. MATCHES & MATCH STATS SCORING
     // ==========================================
-  function renderEventSpecificMatches(eventName) {
-    const container = document.getElementById('eventMatchesContainer');
-    let html = '';
-    let hasMatches = false;
+function renderEventSpecificMatches(eventName) {
+        const container = document.getElementById('eventMatchesContainer');
+        let html = '';
+        let hasMatches = false;
 
-    // PALITAN ITO NG TOTOONG LOGIC MO KUNG PAANO MO NALALAMAN KUNG ADMIN
-    // Example: const isAdmin = localStorage.getItem('userRole') === 'admin';
-    const isAdmin = false; 
+        // TAMA NA LOGIC: Gagamitin natin ang umiiral mong function para ma-check ang role
+        const isAdmin = checkAdminRole(); 
 
-    globalMatches.forEach((m, index) => {
-        if (m.EventName !== eventName) return;
-        hasMatches = true;
+        globalMatches.forEach((m, index) => {
+            if (m.EventName !== eventName) return;
+            hasMatches = true;
 
-        let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
-        let statClass = mStatus === "Ended" ? "ended" : (mStatus === "Ongoing" ? "ongoing live-status-blinking" : "upcoming");
+            let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
+            let statClass = mStatus === "Ended" ? "ended" : (mStatus === "Ongoing" ? "ongoing live-status-blinking" : "upcoming");
 
-        // Gagawa tayo ng condition para sa button
-        let buttonHtml = '';
-        if (isAdmin) {
-            buttonHtml = `
-                <button class="enter-stats-btn" onclick="openMatchStats(${index})">
-                    <i class="fas fa-clipboard-list"></i> Enter Stats
-                </button>
-            `;
-        }
+            let buttonHtml = '';
+            if (isAdmin) {
+                buttonHtml = `
+                    <button class="enter-stats-btn" onclick="openMatchStats(${index})">
+                        <i class="fas fa-clipboard-list"></i> Enter Stats
+                    </button>
+                `;
+            }
 
-        html += `
-            <div class="vct-match-row">
-                <div class="match-col time-col">
-                    <span class="m-date">${m.Date || 'TBA'}</span>
-                    <span class="m-time">${m.Time || 'TBA'}</span>
-                    <span class="m-tz">PST</span>
-                </div>
+            html += `
+                <div class="vct-match-row">
+                    <div class="match-col time-col">
+                        <span class="m-date">${m.Date || 'TBA'}</span>
+                        <span class="m-time">${m.Time || 'TBA'}</span>
+                        <span class="m-tz">PST</span>
+                    </div>
 
-                <div class="match-col matchup-col">
-                    <span class="m-category">${m.Category || 'Match'}</span>
-                    <div class="teams-wrapper">
-                        <span class="team-name">${m.TeamA}</span>
-                        <span class="vs-text">${m.ScoreA || '-'} : ${m.ScoreB || '-'}</span>
-                        <span class="team-name">${m.TeamB}</span>
+                    <div class="match-col matchup-col">
+                        <span class="m-category">${m.Category || 'Match'}</span>
+                        <div class="teams-wrapper">
+                            <span class="team-name">${m.TeamA}</span>
+                            <span class="vs-text">${m.ScoreA || '-'} : ${m.ScoreB || '-'}</span>
+                            <span class="team-name">${m.TeamB}</span>
+                        </div>
+                    </div>
+
+                    <div class="match-col action-col">
+                        <span class="m-status ${statClass}" style="${mStatus==='Ongoing' ? 'color:#ff4757;' : ''}">${mStatus.toUpperCase()}</span>
+                        ${buttonHtml} 
                     </div>
                 </div>
-
-                <div class="match-col action-col">
-                    <span class="m-status ${statClass}" style="${mStatus==='Ongoing' ? 'color:#ff4757;' : ''}">${mStatus.toUpperCase()}</span>
-                    ${buttonHtml} <!-- Dito lalabas ang button KUNG admin lang -->
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = hasMatches ? html : '<div class="empty-text">No matches recorded yet.</div>';
-}
+            `;
+        });
+        
+        container.innerHTML = hasMatches ? html : '<div class="empty-text">No matches recorded yet.</div>';
+    }
 
     function renderHomeMatches(matches) {
         const container = document.getElementById('liveMatchesContainer');
@@ -2742,20 +2740,39 @@
         fetchDashboardData();
     }
 
-    function openMatchStats(index) {
+   function openMatchStats(index) {
         currentMatchStatsIndex = index;
         const m = globalMatches[index];
         if (!m) return;
 
         tempMatchStats = m.statsBreakdown ? [...m.statsBreakdown] : [];
         
+        // I-set ang sariling timer ng match kung wala pa
+        let initialMinutes = parseInt(m.duration || m.Duration || defaultMatchMinutes) || 60;
+        if (typeof m.matchTimeLeft === 'undefined') m.matchTimeLeft = initialMinutes * 60;
+        if (typeof m.hiddenGameClock === 'undefined') m.hiddenGameClock = 0;
+        if (typeof m.isRunning === 'undefined') m.isRunning = false;
+
+        // I-update ang button batay sa kung tumatakbo ang sariling timer ng match na ito
+        let startBtn = document.getElementById('startTimerBtn');
+        if (startBtn) {
+            if (m.isRunning) {
+                startBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                startBtn.style.backgroundColor = '#f59e0b';
+            } else {
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Start';
+                startBtn.style.backgroundColor = 'var(--live-green)';
+            }
+        }
+
+        updateTimerDisplay(); // Display ang time ng active match
+
         document.getElementById('statsMatchMeta').innerText = `${m.TeamA} vs ${m.TeamB} | ${m.Category || 'Match'}`;
         document.getElementById('statsTeamA').innerText = m.TeamA;
         document.getElementById('statsTeamB').innerText = m.TeamB;
         
         document.getElementById('scoreValA').innerText = m.ScoreA || 0;
         document.getElementById('scoreValB').innerText = m.ScoreB || 0;
-
         document.getElementById('btnSelectTeamA').innerText = m.TeamA;
         document.getElementById('btnSelectTeamB').innerText = m.TeamB;
 
@@ -2766,7 +2783,6 @@
         renderStatsBreakdown();
 
         let isAdmin = checkAdminRole();
-
         let adminSaveContainer = document.getElementById('adminOnlyMatchSave');
         if (adminSaveContainer) adminSaveContainer.style.display = isAdmin ? 'flex' : 'none';
 
@@ -2779,9 +2795,7 @@
         let phaseSelect = document.getElementById('gamePhaseSelect');
         if (phaseSelect) phaseSelect.disabled = !isAdmin;
 
-        document.querySelectorAll('.admin-stat-btn').forEach(btn => {
-            btn.style.display = isAdmin ? '' : 'none';
-        });
+        document.querySelectorAll('.admin-stat-btn').forEach(btn => btn.style.display = isAdmin ? '' : 'none');
 
         let timerControls = document.getElementById('adminTimerControls');
         if (timerControls) timerControls.style.display = isAdmin ? 'flex' : 'none';
@@ -2847,9 +2861,8 @@
         }
 
         const m = globalMatches[currentMatchStatsIndex];
-        const teamName = currentActionTeam === 'A' ? m.TeamA : m.TeamB;
-        
-        const currentMinute = Math.floor(hiddenGameClock / 60) + 1;
+    // Palitan ang lumang "currentMinute" line nito:
+    const currentMinute = Math.floor(m.hiddenGameClock / 60) + 1;
 
         const statEntry = {
             team: teamName,
@@ -2989,64 +3002,105 @@
         }
     }
 
-    // ==========================================
-    // 9. MATCH TIMER LOGIC
+// ==========================================
+    // 9. MATCH TIMER LOGIC (Independent per Match)
     // ==========================================
     function updateTimerDisplay() {
-        let m = Math.floor(matchTimeLeft / 60);
-        let s = matchTimeLeft % 60;
+        if (currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if (!m) return;
+
+        let min = Math.floor(m.matchTimeLeft / 60);
+        let sec = m.matchTimeLeft % 60;
         let displayEl = document.getElementById('matchTimerDisplay');
         if (displayEl) {
-            displayEl.innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            displayEl.innerText = (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
         }
     }
 
     function toggleMatchTimer() {
+        if (currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if (!m) return;
+
         let btn = document.getElementById('startTimerBtn');
-        if (isMatchTimerRunning) {
-            clearInterval(matchTimerInterval);
-            btn.innerHTML = '<i class="fas fa-play"></i> Start';
-            btn.style.backgroundColor = 'var(--live-green)';
+
+        if (m.isRunning) {
+            clearInterval(m.intervalId);
+            m.isRunning = false;
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-play"></i> Start';
+                btn.style.backgroundColor = 'var(--live-green)';
+            }
         } else {
-            matchTimerInterval = setInterval(() => {
-                if (matchTimeLeft > 0) {
-                    matchTimeLeft--;
-                    hiddenGameClock++;
-                    updateTimerDisplay();
+            m.isRunning = true;
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                btn.style.backgroundColor = '#f59e0b';
+            }
+
+            m.intervalId = setInterval(() => {
+                if (m.matchTimeLeft > 0) {
+                    m.matchTimeLeft--;
+                    m.hiddenGameClock++;
+                    
+                    // I-update lang ang UI kung nakabukas ang match na ito
+                    if (currentMatchStatsIndex !== -1 && globalMatches[currentMatchStatsIndex] === m) {
+                        updateTimerDisplay();
+                    }
                 } else {
-                    clearInterval(matchTimerInterval);
-                    isMatchTimerRunning = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> Start';
-                    alert("Time's up!");
+                    clearInterval(m.intervalId);
+                    m.isRunning = false;
+                    
+                    if (currentMatchStatsIndex !== -1 && globalMatches[currentMatchStatsIndex] === m) {
+                        if (btn) {
+                            btn.innerHTML = '<i class="fas fa-play"></i> Start';
+                            btn.style.backgroundColor = 'var(--live-green)';
+                        }
+                        alert(`Time's up para sa laban: ${m.TeamA} vs ${m.TeamB}!`);
+                    }
                 }
             }, 1000);
-            btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-            btn.style.backgroundColor = '#f59e0b';
         }
-        isMatchTimerRunning = !isMatchTimerRunning;
     }
 
     function resetMatchTimer() {
-        clearInterval(matchTimerInterval);
-        isMatchTimerRunning = false;
-        hiddenGameClock = 0;
+        if (currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if (!m) return;
+
+        if (m.intervalId) clearInterval(m.intervalId);
+        
+        m.isRunning = false;
+        m.hiddenGameClock = 0;
+        let initialMinutes = parseInt(m.duration || m.Duration || defaultMatchMinutes) || 60;
+        m.matchTimeLeft = initialMinutes * 60;
+
         let btn = document.getElementById('startTimerBtn');
         if (btn) {
             btn.innerHTML = '<i class="fas fa-play"></i> Start';
             btn.style.backgroundColor = 'var(--live-green)';
         }
-        matchTimeLeft = defaultMatchMinutes * 60;
         updateTimerDisplay();
     }
 
     function adjustMatchTimer(minutes) {
-        matchTimeLeft += minutes * 60;
-        if (matchTimeLeft < 0) matchTimeLeft = 0;
+        if (currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if (!m) return;
+
+        m.matchTimeLeft += minutes * 60;
+        if (m.matchTimeLeft < 0) m.matchTimeLeft = 0;
         updateTimerDisplay();
     }
 
     function setMatchTimerExact(minutes) {
+        if (currentMatchStatsIndex === -1) return;
+        const m = globalMatches[currentMatchStatsIndex];
+        if (!m) return;
+
         defaultMatchMinutes = minutes;
+        m.duration = minutes;
         resetMatchTimer();
     }
 
@@ -3176,7 +3230,11 @@
         if (el) el.style.display = 'flex'; 
     }
 
-    function closeModal(modalId) { 
+ function closeModal(modalId) { 
+        if (modalId === 'matchStatsModal') {
+            // I-reset lang natin ang indicator, pero HINDI natin papatayin ang background timer
+            currentMatchStatsIndex = -1;
+        }
         const el = document.getElementById(modalId);
         if (el) el.style.display = 'none'; 
     }
