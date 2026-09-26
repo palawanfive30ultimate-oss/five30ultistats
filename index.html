@@ -722,6 +722,54 @@
     }
 }
 
+/* MOBILE VIEW FIX - Ilagay sa pinakadulo ng CSS file */
+@media screen and (max-width: 768px) {
+    .vct-match-row {
+        flex-direction: column; /* Ginagawang patayo ang pagkakasunod-sunod */
+        align-items: center;
+        padding: 15px 10px;
+        gap: 8px;
+    }
+
+    /* I-reset ang width ng bawat column para sumakop sa buong screen */
+    .time-col, .matchup-col, .action-col {
+        width: 100% !important;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    /* Gawing pahalang ang oras at petsa sa mobile para tipid sa space */
+    .time-col {
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px;
+        border-bottom: 1px solid #2a2a2a;
+        padding-bottom: 8px;
+    }
+
+    .m-time {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Ayusin ang pwesto ng magkalaban */
+    .teams-wrapper {
+        width: 100%;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .team-name {
+        width: 40%; /* Binibigyan ng pantay na espasyo ang magkabilang team */
+        font-size: 1.1rem; /* Pinaliit nang bahagya ang font */
+        word-wrap: break-word; /* Hahatiin sa dalawang linya kung masyadong mahaba ang pangalan */
+    }
+
+    .action-col {
+        margin-top: 5px;
+    }
+}
+
     </style>
 </head>
 
