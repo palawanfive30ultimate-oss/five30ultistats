@@ -2850,38 +2850,39 @@ function renderEventSpecificMatches(eventName) {
         document.getElementById('statBlockPlayer').innerHTML = options;
     }
 
-    function addStatToBreakdown() {
-        const goal = document.getElementById('statGoalPlayer').value;
-        const assist = document.getElementById('statAssistPlayer').value;
-        const block = document.getElementById('statBlockPlayer').value;
+   function addStatToBreakdown() {
+    const goal = document.getElementById('statGoalPlayer').value;
+    const assist = document.getElementById('statAssistPlayer').value;
+    const block = document.getElementById('statBlockPlayer').value;
 
-        if (!goal && !assist && !block) {
-            alert("Pumili muna ng player sa Goal, Assist, o Block bago i-add.");
-            return;
-        }
-
-        const m = globalMatches[currentMatchStatsIndex];
-    // Palitan ang lumang "currentMinute" line nito:
-    const currentMinute = Math.floor(m.hiddenGameClock / 60) + 1;
-
-        const statEntry = {
-            team: teamName,
-            side: currentActionTeam,
-            minute: currentMinute,
-            goal: goal || "-",
-            assist: assist || "-",
-            block: block || "-"
-        };
-
-        tempMatchStats.push(statEntry);
-        
-        document.getElementById('statGoalPlayer').value = '';
-        document.getElementById('statAssistPlayer').value = '';
-        document.getElementById('statBlockPlayer').value = '';
-
-        renderStatsBreakdown();
+    if (!goal && !assist && !block) {
+        alert("Pumili muna ng player sa Goal, Assist, o Block bago i-add.");
+        return;
     }
 
+    const m = globalMatches[currentMatchStatsIndex];
+    const currentMinute = Math.floor(m.hiddenGameClock / 60) + 1;
+    
+    // IDAGDAG ITO PARA MA-DEFINE ANG teamName
+    const teamName = currentActionTeam === 'A' ? m.TeamA : m.TeamB;
+
+    const statEntry = {
+        team: teamName, 
+        side: currentActionTeam,
+        minute: currentMinute,
+        goal: goal || "-",
+        assist: assist || "-",
+        block: block || "-"
+    };
+
+    tempMatchStats.push(statEntry);
+    
+    document.getElementById('statGoalPlayer').value = '';
+    document.getElementById('statAssistPlayer').value = '';
+    document.getElementById('statBlockPlayer').value = '';
+
+    renderStatsBreakdown();
+}
     function renderStatsBreakdown() {
         const container = document.getElementById('statsBreakdownContainer');
         if (tempMatchStats.length === 0) {
