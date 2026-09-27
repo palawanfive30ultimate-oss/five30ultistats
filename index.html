@@ -1840,7 +1840,7 @@
     // ==========================================
     // 5. EVENTS / TOURNAMENTS MANAGEMENT
     // ==========================================
-    function renderEvents() {
+   function renderEvents() {
         const container = document.getElementById('eventListContainer');
         const homeUpcomingContainer = document.getElementById('upcomingEventsContainer');
         const monthSel = document.getElementById('monthFilter').value;
@@ -1860,7 +1860,9 @@
             container.innerHTML = `<div class="empty-text">No events found in this view.</div>`;
             return;
         }
-        let isAdmin = checkAdminRole();
+        
+        let isAdmin = checkAdminRole(); 
+        
         let gridHtml = '<div class="events-grid">';
         filtered.forEach(evt => gridHtml += createCardHtml(evt, isAdmin, 'eventsView'));
         gridHtml += '</div>';
