@@ -1645,6 +1645,8 @@
     let isMatchTimerRunning = false;
     let defaultMatchMinutes = 60;
 
+    let guestLiveSyncInterval = null; // Para sa background refresh ng guest
+
     // ==========================================
     // 2. INITIALIZATION & WINDOW EVENTS
     // ==========================================
@@ -2599,11 +2601,18 @@ function renderEventSpecificMatches(eventName) {
             let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
             let statClass = mStatus === "Ended" ? "ended" : (mStatus === "Ongoing" ? "ongoing live-status-blinking" : "upcoming");
 
-            let buttonHtml = '';
+           let buttonHtml = '';
             if (isAdmin) {
                 buttonHtml = `
                     <button class="enter-stats-btn" onclick="openMatchStats(${index})">
                         <i class="fas fa-clipboard-list"></i> Enter Stats
+                    </button>
+                `;
+            } else {
+                // ITO ANG BAGONG BUTTON PARA SA MGA GUESTS / PLAYERS
+                buttonHtml = `
+                    <button class="view-live-btn" style="background: #3b3076; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;" onclick="openMatchStats(${index})">
+                        <i class="fas fa-eye"></i> View Live
                     </button>
                 `;
             }
@@ -2805,6 +2814,14 @@ function renderEventSpecificMatches(eventName) {
         let playByPlayPanel = document.getElementById('adminPlayByPlayPanel');
         if (playByPlayPanel) playByPlayPanel.style.display = isAdmin ? 'block' : 'none';
 
+        // --- LIVE SYNC PARA SA GUEST ---
+        if (!isAdmin) {
+            if (guestLiveSyncInterval) clearInterval(guestLiveSyncInterval);
+            guestLiveSyncInterval = setInterval(() => {
+                silentFetchMatchData(index);
+            }, 10000); // Magre-refresh bawat 10 segundo
+        }
+
         openModal('matchStatsModal');
     }
 
@@ -3002,6 +3019,35 @@ function renderEventSpecificMatches(eventName) {
         } catch (err) {
             console.error("Error saving match stats:", err);
             alert("Nai-save sa screen pero nagka-error sa pag-send sa database.");
+        }
+    }
+
+    async function silentFetchMatchData(matchIndex) {
+        if (currentMatchStatsIndex !== matchIndex) return; 
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL);
+            const result = await response.json();
+            
+            if (result.success && currentMatchStatsIndex === matchIndex) {
+                // I-update ang global database
+                globalMatches = result.matches || [];
+                const m = globalMatches[matchIndex];
+                
+                if (m) {
+                    // I-update lang ang score at stats nang walang loading screen
+                    document.getElementById('scoreValA').innerText = m.ScoreA || 0;
+                    document.getElementById('scoreValB').innerText = m.ScoreB || 0;
+                    
+                    let currentStatus = m.matchStatus || "Upcoming";
+                    changeMatchStatus(currentStatus);
+
+                    tempMatchStats = m.statsBreakdown ? [...m.statsBreakdown] : [];
+                    renderStatsBreakdown();
+                }
+            }
+        } catch (error) {
+            console.log("Background sync failed (Normal lang kung mahina ang signal):", error);
         }
     }
 
@@ -3235,8 +3281,12 @@ function renderEventSpecificMatches(eventName) {
 
  function closeModal(modalId) { 
         if (modalId === 'matchStatsModal') {
-            // I-reset lang natin ang indicator, pero HINDI natin papatayin ang background timer
             currentMatchStatsIndex = -1;
+            // Patayin ang live sync kapag sinara na ang modal
+            if (guestLiveSyncInterval) {
+                clearInterval(guestLiveSyncInterval);
+                guestLiveSyncInterval = null;
+            }
         }
         const el = document.getElementById(modalId);
         if (el) el.style.display = 'none'; 
