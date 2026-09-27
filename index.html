@@ -795,7 +795,7 @@
         </div>
 
         <ul class="nav-menu">
-            <li><a class="nav-link" id="nav-home" onclick="switchView('homeView', this)"><i class="fas fa-home"></i> Home</a></li>
+            <!--<li><a class="nav-link" id="nav-home" onclick="switchView('homeView', this)"><i class="fas fa-home"></i> Home</a></li>-->
             <li><a class="nav-link active" id="nav-events" onclick="switchView('eventsView', this)"><i class="far fa-calendar-alt"></i> Events</a></li>
             <li><a class="nav-link" id="nav-teams" onclick="switchView('teamsView', this)"><i class="fas fa-users"></i> Teams</a></li>
             <li><a class="nav-link" id="nav-players" onclick="switchView('playersView', this)"><i class="fas fa-running"></i> Players</a></li>
@@ -809,9 +809,9 @@
             </li>
         </ul>
 
-        <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+       <!--<div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
             <a class="nav-link" id="nav-askadmin" onclick="alert('May katanungan ba? I-message ang aming admin team sa: admin@five30.com o sa ating Official Facebook Page!')"><i class="fas fa-comment-dots"></i> Ask Admin</a>
-        </div>
+        </div>-->
     </aside>
 
     <main class="main-content">
@@ -841,7 +841,7 @@
             </div>
         </header>
 
-        <div id="homeView" class="view-section">
+        <!--<div id="homeView" class="view-section">
             <section>
                 <div class="section-header-row">
                     <h2 class="section-header">UPCOMING EVENTS</h2>
@@ -868,11 +868,11 @@
                     <div class="empty-text">Leaderboard is currently empty. Add user data to begin.</div>
                 </div>
             </section>
-        </div>
+        </div>-->
 
         <div id="eventsView" class="view-section active-view">
             <h2 class="events-page-header">
-                Event Management Center <span class="admin-mode-text">(Admin Edit Mode)</span>
+                Events <span class="admin-mode-text">(Admin Edit Mode)</span>
             </h2>
 
             <button class="btn-massive admin-only-btn" id="btnCreateEvent" onclick="openModal('addEventModal')">
@@ -926,7 +926,7 @@
 
         <div id="teamsView" class="view-section">
             <h2 class="events-page-header">
-                Tournament Teams Center <span class="admin-mode-text">(Admin View)</span>
+                Tournament Teams <span class="admin-mode-text">(Admin View)</span>
             </h2>
 
             <div class="filter-controls">
@@ -957,7 +957,7 @@
                         <i class="fas fa-history"></i> Past Tournaments
                     </button>
                     <button class="tab-btn active" id="teamTabUpcoming" onclick="switchTeamEventTab('upcoming')">
-                        <i class="far fa-calendar-check"></i> Active Tournaments
+                        <i class="far fa-calendar-check"></i> Upcoming Tournaments
                     </button>
                 </div>
             </div>
@@ -968,7 +968,7 @@
 
         <div id="playersView" class="view-section">
             <h2 class="events-page-header">
-                Players Directory Center <span class="admin-mode-text">(Admin View)</span>
+                Players <span class="admin-mode-text">(Admin View)</span>
             </h2>
 
             <div class="filter-controls">
@@ -998,7 +998,7 @@
                         <i class="fas fa-history"></i> Past Tournaments
                     </button>
                     <button class="tab-btn active" id="playerTabUpcoming" onclick="switchPlayerEventTab('upcoming')">
-                        <i class="far fa-calendar-check"></i> Active Tournaments
+                        <i class="far fa-calendar-check"></i> Upcoming Tournaments
                     </button>
                 </div>
             </div>
@@ -1880,7 +1880,7 @@
         let filtered = filterEngine(globalEvents, monthSel, yearSel, currentTeamTab);
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div class="empty-text">No active tournaments found for Teams.</div>`;
+            container.innerHTML = `<div class="empty-text">No upcoming tournaments found for Teams.</div>`;
             return;
         }
         let gridHtml = '<div class="events-grid">';
@@ -1907,8 +1907,9 @@
         container.innerHTML = gridHtml;
     }
 
-    function filterEngine(arr, monthSel, yearSel, activeTabState) {
-        return arr.filter(evt => {
+   function filterEngine(arr, monthSel, yearSel, activeTabState) {
+        // 1. Unang step: I-filter ang listahan (Old logic mo)
+        let filtered = arr.filter(evt => {
             if (yearSel !== 'all' && !evt.EventDate.includes(yearSel)) return false;
             if (monthSel !== 'all') {
                 const monthsMap = {"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"};
@@ -1918,6 +1919,30 @@
             if (activeTabState === 'past' && !isPast) return false;
             if (activeTabState === 'upcoming' && isPast) return false;
             return true;
+        });
+
+        // 2. Pangalawang step: Bagong Sorting Logic
+        return filtered.sort((a, b) => {
+            // Function para ma-convert ang text date (hal. "August 15-16, 2026") sa number
+            function parseDateToTime(dateStr) {
+                if (!dateStr) return 0;
+                // Kung ang format ay 'YYYY-MM-DD'
+                if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(dateStr.substring(0,10)).getTime();
+                
+                // Kung ang format ay may range (hal. "August 15-16, 2026"), aalisin ang "-16" para mabasa ng system
+                let cleanStr = dateStr.replace(/-[0-9]{1,2}/, '');
+                let parsedTime = new Date(cleanStr).getTime();
+                return isNaN(parsedTime) ? 0 : parsedTime;
+            }
+
+            let timeA = parseDateToTime(a.EventDate);
+            let timeB = parseDateToTime(b.EventDate);
+
+            if (activeTabState === 'past') {
+                return timeB - timeA; // Descending: Pinakabagong tapos na tournament sa taas
+            } else {
+                return timeA - timeB; // Ascending: Pinakamalapit na upcoming tournament sa taas
+            }
         });
     }
 
