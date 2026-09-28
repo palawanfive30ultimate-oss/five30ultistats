@@ -1611,7 +1611,7 @@
     // ==========================================
     // 1. GLOBAL CONFIGURATION & STATE TRACKERS
     // ==========================================
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwun8B85TNyCeYMBp3TR3vir16DV5Mgrl0ORVGro5SM_-wPRJlNNWHYuoypHFxfPpQI/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyD-JoPipNn1Bbkt4FVjP8BYDeFsEj44caPaXHSTqSWbFBMlGhCW9Tlfx2uu7YOT712/exec"; 
 
     let globalEvents = [];
     let globalMatches = []; 
@@ -1634,6 +1634,8 @@
     let currentActionTeam = 'A'; // 'A' or 'B'
     let tempMatchStats = []; 
 
+    let currentMatchSubTab = 'round-robin'; // Default sub-tab para sa matches ('round-robin' o 'playoffs')
+
     // LEADERBOARD TRACKERS
     let currentLeaderboardFilter = 'Overall'; // 'Overall', 'Men', 'Women'
     let currentLeaderboardEvent = 'all';
@@ -1646,6 +1648,15 @@
     let defaultMatchMinutes = 60;
 
     let guestLiveSyncInterval = null; // Para sa background refresh ng guest
+
+    // Global variable para sa Match Filter
+let currentMatchFilter = 'All';
+
+// Function para palitan ang filter at i-reload ang listahan
+function setMatchFilter(filterType, eventName) {
+    currentMatchFilter = filterType;
+    renderEventSpecificMatches(eventName);
+}
 
     // ==========================================
     // 2. INITIALIZATION & WINDOW EVENTS
@@ -2613,61 +2624,105 @@
     // ==========================================
 function renderEventSpecificMatches(eventName) {
         const container = document.getElementById('eventMatchesContainer');
-        let html = '';
-        let hasMatches = false;
+        const isAdmin = checkAdminRole();
 
-        // TAMA NA LOGIC: Gagamitin natin ang umiiral mong function para ma-check ang role
-        const isAdmin = checkAdminRole(); 
+        // 1. Ihiwalay ang matches sa dalawang grupo
+        let roundRobinMatches = [];
+        let playoffMatches = [];
 
         globalMatches.forEach((m, index) => {
             if (m.EventName !== eventName) return;
-            hasMatches = true;
+            
+            let matchWithIndex = { ...m, originalIndex: index };
+            let phase = m.gamePhase ? m.gamePhase.toLowerCase() : 'round robin';
+            
+            if (phase.includes('quarter') || phase.includes('semi') || phase.includes('final') || phase.includes('playoff') || phase.includes('championship') || phase.includes('bracket')) {
+                playoffMatches.push(matchWithIndex);
+            } else {
+                roundRobinMatches.push(matchWithIndex);
+            }
+        });
 
+        // 2. Gawin ang Stage Filter UI (Katulad ng sa larawan)
+        let html = `
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                <span style="font-weight: bold; font-size: 1.1rem; color: #fff;">Stage</span>
+                <div style="display: flex; background-color: #ffffff; border-radius: 30px; padding: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    <button onclick="setMatchFilter('All', '${eventName}')" 
+                        style="background-color: ${currentMatchFilter === 'All' ? '#1c449e' : 'transparent'}; color: ${currentMatchFilter === 'All' ? '#ffffff' : '#333333'}; border: none; border-radius: 20px; padding: 6px 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                        All
+                    </button>
+                    <button onclick="setMatchFilter('Round Robin', '${eventName}')" 
+                        style="background-color: ${currentMatchFilter === 'Round Robin' ? '#1c449e' : 'transparent'}; color: ${currentMatchFilter === 'Round Robin' ? '#ffffff' : '#333333'}; border: none; border-radius: 20px; padding: 6px 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                        Round Robin
+                    </button>
+                    <button onclick="setMatchFilter('Playoffs', '${eventName}')" 
+                        style="background-color: ${currentMatchFilter === 'Playoffs' ? '#1c449e' : 'transparent'}; color: ${currentMatchFilter === 'Playoffs' ? '#ffffff' : '#333333'}; border: none; border-radius: 20px; padding: 6px 18px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                        Playoffs
+                    </button>
+                </div>
+            </div>
+        `;
+
+        if (roundRobinMatches.length === 0 && playoffMatches.length === 0) {
+            container.innerHTML = html + '<div class="empty-text">No matches recorded yet.</div>';
+            return;
+        }
+
+        // 3. Helper function para gumawa ng match card
+        const buildMatchCard = (m, originalIndex) => {
             let mStatus = m.matchStatus || (m.ScoreA && m.ScoreB ? "Ended" : "Upcoming");
             let statClass = mStatus === "Ended" ? "ended" : (mStatus === "Ongoing" ? "ongoing live-status-blinking" : "upcoming");
 
-           let buttonHtml = '';
-            if (isAdmin) {
-                buttonHtml = `
-                    <button class="enter-stats-btn" onclick="openMatchStats(${index})">
-                        <i class="fas fa-clipboard-list"></i> Enter Stats
-                    </button>
-                `;
-            } else {
-                // ITO ANG BAGONG BUTTON PARA SA MGA GUESTS / PLAYERS
-                buttonHtml = `
-                    <button class="view-live-btn" style="background: #3b3076; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;" onclick="openMatchStats(${index})">
-                        <i class="fas fa-eye"></i> View Live
-                    </button>
-                `;
-            }
+            let buttonHtml = isAdmin ? 
+                `<button class="enter-stats-btn" onclick="openMatchStats(${originalIndex})"><i class="fas fa-clipboard-list"></i> Enter Stats</button>` : 
+                `<button class="view-live-btn" style="background: #3b3076; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;" onclick="openMatchStats(${originalIndex})"><i class="fas fa-eye"></i> View Live</button>`;
 
-            html += `
+            let displayPhase = m.gamePhase ? m.gamePhase : 'Round Robin';
+
+            return `
                 <div class="vct-match-row">
                     <div class="match-col time-col">
                         <span class="m-date">${m.Date || 'TBA'}</span>
                         <span class="m-time">${m.Time || 'TBA'}</span>
                         <span class="m-tz">PST</span>
                     </div>
-
                     <div class="match-col matchup-col">
-                        <span class="m-category">${m.Category || 'Match'}</span>
+                        <span class="m-category">${m.Category || 'Match'} | <span style="color:#f59e0b; font-weight: bold;">${displayPhase}</span></span>
                         <div class="teams-wrapper">
                             <span class="team-name">${m.TeamA}</span>
                             <span class="vs-text">${m.ScoreA || '-'} : ${m.ScoreB || '-'}</span>
                             <span class="team-name">${m.TeamB}</span>
                         </div>
                     </div>
-
                     <div class="match-col action-col">
                         <span class="m-status ${statClass}" style="${mStatus==='Ongoing' ? 'color:#ff4757;' : ''}">${mStatus.toUpperCase()}</span>
                         ${buttonHtml} 
                     </div>
                 </div>
             `;
-        });
-        
-        container.innerHTML = hasMatches ? html : '<div class="empty-text">No matches recorded yet.</div>';
+        };
+
+        // 4. I-render ang mga listahan depende sa napiling Filter
+        if (currentMatchFilter === 'All' || currentMatchFilter === 'Round Robin') {
+            if (roundRobinMatches.length > 0) {
+                if (currentMatchFilter === 'All') html += `<h3 style="color: #f9385b; margin: 10px 0 10px; font-size: 1.1rem;"><i class="fas fa-list-ol"></i> Round Robin</h3>`;
+                roundRobinMatches.forEach(m => html += buildMatchCard(m, m.originalIndex));
+            } else if (currentMatchFilter === 'Round Robin') {
+                html += '<div class="empty-text">No Round Robin matches yet.</div>';
+            }
+        }
+
+        if (currentMatchFilter === 'All' || currentMatchFilter === 'Playoffs') {
+            if (playoffMatches.length > 0) {
+                if (currentMatchFilter === 'All') html += `<h3 style="color: #f59e0b; margin: 30px 0 10px; font-size: 1.1rem;"><i class="fas fa-trophy"></i> Playoffs</h3>`;
+                playoffMatches.forEach(m => html += buildMatchCard(m, m.originalIndex));
+            } else if (currentMatchFilter === 'Playoffs') {
+                html += '<div class="empty-text">No Playoffs matches yet.</div>';
+            }
+        }
+
+        container.innerHTML = html;
     }
 
     function renderHomeMatches(matches) {
@@ -2735,7 +2790,7 @@ function renderEventSpecificMatches(eventName) {
         openModal('addMatchModal');
     }
 
-    async function handleAddMatch(e) {
+   async function handleAddMatch(e) {
         e.preventDefault();
         const teamA = document.getElementById('matchTeamA').value;
         const teamB = document.getElementById('matchTeamB').value;
@@ -2757,7 +2812,9 @@ function renderEventSpecificMatches(eventName) {
             field: document.getElementById('matchField').value,
             duration: document.getElementById('matchDuration').value,
             category: document.getElementById('matchCategory').value,
-            type: document.getElementById('matchType').value
+            type: document.getElementById('matchType').value,
+            // ITO ANG IDINAGDAG PARA SA GAME PHASE DROPDOWN (Siguraduhing 'matchGamePhase' ang ID ng dropdown mo sa HTML)
+            gamePhase: document.getElementById('matchGamePhase') ? document.getElementById('matchGamePhase').value : "Round Robin"
         };
 
         try {
@@ -3021,19 +3078,18 @@ function renderEventSpecificMatches(eventName) {
         closeModal('matchStatsModal'); 
         
         try {
-            const payload = {
-                action: 'updateMatchStats',
-                eventName: m.EventName,
-                teamA: m.TeamA,
-                teamB: m.TeamB,
-                scoreA: m.ScoreA,
-                scoreB: m.ScoreB,
-                statsBreakdown: m.statsBreakdown, 
-                matchStatus: m.matchStatus,
-                winner: m.winner || "",
-                gamePhase: m.gamePhase
-            };
-
+          const payload = {
+        action: 'updateMatchStats',
+        eventName: currentMatch.EventName,
+        teamA: currentMatch.TeamA,
+        teamB: currentMatch.TeamB,
+        scoreA: document.getElementById('teamAScore').innerText, 
+        scoreB: document.getElementById('teamBScore').innerText,
+        matchStatus: currentMatchStatus,
+        // IDAGDAG ITO: Kunin ang value mula sa Game Phase dropdown ng modal
+        gamePhase: document.getElementById('liveGamePhase') ? document.getElementById('liveGamePhase').value : "Round Robin",
+        statsBreakdown: currentStatsArray
+    };
             await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
